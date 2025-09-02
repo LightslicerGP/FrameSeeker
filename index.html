@@ -72,7 +72,7 @@
   <body>
     <h1>Frame Seeker</h1>
     <input type="file" accept="video/*" id="fileInput" />
-    <video id="video" controls></video>
+    <video id="video" playsinline disablepictureinpicture controlslist="nofullscreen noremoteplayback" controls="false"></video>
 
     <div class="controls">
       <button id="back10">⏪ -10s</button>
