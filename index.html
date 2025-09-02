@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hello World PWA</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <script>
+      // Register service worker
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js");
+      }
+
+      let deferredPrompt;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+        deferredPrompt = e;
+        // Show install button
+        document.getElementById("installBtn").style.display = "block";
+      });
+
+      async function installPWA() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          console.log("PWA setup accepted");
+        }
+        deferredPrompt = null;
+        document.getElementById("installBtn").style.display = "none";
+      }
+
+      // Detect if already running as PWA and hide button
+      window.addEventListener("load", () => {
+        const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+        if (isStandalone) {
+          document.getElementById("installBtn").style.display = "none";
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Hello World</h1>
+    <button id="installBtn" onclick="installPWA()" style="display: none">Install App</button>
+  </body>
+</html>
