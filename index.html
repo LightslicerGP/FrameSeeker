@@ -5,22 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hello World PWA</title>
 
-    <!-- PWA Manifest -->
+    <link rel="icon" type="image/png" sizes="512x512" href="Icons/icon-512.png" />
+
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#ffffff" />
 
     <script>
-      // Register service worker
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("sw.js");
       }
 
       let deferredPrompt;
       window.addEventListener("beforeinstallprompt", (e) => {
-        // Prevent the mini-infobar from appearing on mobile
         e.preventDefault();
         deferredPrompt = e;
-        // Show install button
         document.getElementById("installBtn").style.display = "block";
       });
 
@@ -35,7 +33,6 @@
         document.getElementById("installBtn").style.display = "none";
       }
 
-      // Detect if already running as PWA and hide button
       window.addEventListener("load", () => {
         const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
         if (isStandalone) {
@@ -43,9 +40,98 @@
         }
       });
     </script>
+
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: #111;
+        color: #fff;
+      }
+      video {
+        max-width: 100%;
+        margin: 10px;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 10px;
+        justify-content: center;
+      }
+      button {
+        padding: 10px 15px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
-    <h1>Hello World</h1>
+    <h1>Frame Seeker</h1>
+    <input type="file" accept="video/*" id="fileInput" />
+    <video id="video" controls></video>
+
+    <div class="controls">
+      <button id="back10">⏪ -10s</button>
+      <button id="prevFrame">◀ Frame</button>
+      <button id="playPause">▶/⏸</button>
+      <button id="nextFrame">Frame ▶</button>
+      <button id="forward10">+10s ⏩</button>
+      <button id="captureFrame">📸 Capture Frame</button>
+    </div>
+
+    <script>
+      const video = document.getElementById("video");
+      const fileInput = document.getElementById("fileInput");
+      const playPause = document.getElementById("playPause");
+      const captureBtn = document.getElementById("captureFrame");
+      let fps = 30; // fallback fps
+      let baseFilename = "Video";
+
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          baseFilename = file.name.replace(/\.[^/.]+$/, ""); // remove extension
+          video.src = URL.createObjectURL(file);
+        }
+      });
+
+      playPause.addEventListener("click", () => {
+        if (video.paused) video.play();
+        else video.pause();
+      });
+
+      document.getElementById("back10").onclick = () => (video.currentTime -= 10);
+      document.getElementById("forward10").onclick = () => (video.currentTime += 10);
+
+      document.getElementById("nextFrame").onclick = () => {
+        video.pause();
+        video.currentTime += 1 / fps;
+      };
+      document.getElementById("prevFrame").onclick = () => {
+        video.pause();
+        video.currentTime -= 1 / fps;
+      };
+
+      captureBtn.addEventListener("click", () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const frameNumber = Math.round(video.currentTime * fps);
+        const filename = `${baseFilename}-Frame${frameNumber.toString().padStart(3, "0")}.png`;
+
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/png");
+        link.download = filename;
+        link.click();
+      });
+    </script>
     <button id="installBtn" onclick="installPWA()" style="display: none">Install App</button>
   </body>
 </html>
