@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello World PWA</title>
+    <title>FrameSeeker</title>
 
     <link rel="icon" type="image/png" sizes="512x512" href="Icons/icon-512.png" />
 
@@ -44,43 +44,271 @@
     <style>
       body {
         display: flex;
+        margin: 0;
+        padding: 0;
         flex-direction: column;
         align-items: center;
-        background: #111;
-        color: #fff;
+        background: #000000;
+        color: #ffffff;
+        overflow: hidden;
+        font-family: inter;
       }
       video {
-        max-width: 100%;
-        margin: 10px;
+        width: 100vw;
       }
       .controls {
+        position: fixed;
+        bottom: 0;
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
-        margin: 10px;
+        gap: 8px;
+        margin-top: 8px;
+        margin-bottom: 8px;
         justify-content: center;
+        width: 100vw;
       }
       button {
-        padding: 10px 15px;
-        font-size: 16px;
+        padding: 8px 8px;
         border-radius: 8px;
         border: none;
         cursor: pointer;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(16px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      button > svg {
+        display: block;
+        margin: auto;
+      }
+      #playPause svg {
+        display: none;
+      }
+      #playPause .active {
+        display: inline;
+      }
+
+      #popupOverlay {
+        display: none;
+        position: fixed;
+        z-index: 2;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        align-items: center;
+        justify-content: center;
+      }
+      #popupContent {
+        color: #000000;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(16px);
+        border-radius: 32px;
+        width: 512px;
+        height: 256px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      #closePopupBtn {
+        position: absolute;
+        width: 32px;
+        height: 32px;
+        top: 16px;
+        right: 16px;
+        border-radius: 16px;
+        background: none;
+        border: none;
+        color: #000000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      #closePopupBtn > svg {
+        width: 24px;
+        height: 24px;
       }
     </style>
   </head>
   <body>
-    <h1>Frame Seeker</h1>
-    <input type="file" accept="video/*" id="fileInput" />
-    <video id="video" playsinline disablepictureinpicture controlslist="nofullscreen noremoteplayback" controls="false"></video>
+    <video id="video" style="display: none"></video>
+
+    <!-- Popup Div -->
+    <div id="popupOverlay">
+      <div id="popupContent">
+        <p>Select Framerate:</p>
+        <input type="number" id="framerateSelect" min="1" max="360" />
+        <button id="closePopupBtn" title="Close">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-circle-x"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+            <path d="M10 10l4 4m0 -4l-4 4" />
+          </svg>
+        </button>
+      </div>
+    </div>
 
     <div class="controls">
-      <button id="back10">⏪ -10s</button>
-      <button id="prevFrame">◀ Frame</button>
-      <button id="playPause">▶/⏸</button>
-      <button id="nextFrame">Frame ▶</button>
-      <button id="forward10">+10s ⏩</button>
-      <button id="captureFrame">📸 Capture Frame</button>
+      <input type="file" accept="video/mp4,video/webm,video/mov,video/x-matroska,video/mkv,video/*" id="fileInput" />
+      <button id="other">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000000"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-dots"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+          <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+          <path d="M19 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+        </svg>
+      </button>
+      <button id="back10">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000000"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-backward-10"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M7 9l-3 -3l3 -3" />
+          <path d="M15.997 17.918a6.002 6.002 0 0 0 -.997 -11.918h-11" />
+          <path d="M6 14v6" />
+          <path d="M9 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
+        </svg>
+      </button>
+      <button id="prevFrame">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000000"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-left-pipe"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M7 6v12" />
+          <path d="M18 6l-6 6l6 6" />
+        </svg>
+      </button>
+      <button id="playPause">
+        <svg
+          id="pauseIcon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="#000000"
+          class="icon icon-tabler icons-tabler-filled icon-tabler-player-pause active"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M9 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z" />
+          <path d="M17 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z" />
+        </svg>
+        <svg
+          id="playIcon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="#000000"
+          class="icon icon-tabler icons-tabler-filled icon-tabler-player-play"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z" />
+        </svg>
+      </button>
+      <button id="nextFrame">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000000"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-right-pipe"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M6 6l6 6l-6 6" />
+          <path d="M17 5v13" />
+        </svg>
+      </button>
+      <button id="forward10">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000000"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-forward-10"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M17 9l3 -3l-3 -3" />
+          <path d="M8 17.918a5.997 5.997 0 0 1 -5 -5.918a6 6 0 0 1 6 -6h11" />
+          <path d="M12 14v6" />
+          <path d="M15 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
+        </svg>
+      </button>
+      <button id="captureFrame">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000000"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-photo-scan"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M15 8h.01" />
+          <path d="M6 13l2.644 -2.644a1.21 1.21 0 0 1 1.712 0l3.644 3.644" />
+          <path d="M13 13l1.644 -1.644a1.21 1.21 0 0 1 1.712 0l1.644 1.644" />
+          <path d="M4 8v-2a2 2 0 0 1 2 -2h2" />
+          <path d="M4 16v2a2 2 0 0 0 2 2h2" />
+          <path d="M16 4h2a2 2 0 0 1 2 2v2" />
+          <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
+        </svg>
+      </button>
     </div>
 
     <script>
@@ -88,25 +316,66 @@
       const fileInput = document.getElementById("fileInput");
       const playPause = document.getElementById("playPause");
       const captureBtn = document.getElementById("captureFrame");
-      let fps = 30; // fallback fps
+      const pauseIcon = document.getElementById("pauseIcon");
+      const playIcon = document.getElementById("playIcon");
       let baseFilename = "Video";
+      let fps;
+
+      function updatePlayPauseIcon() {
+        if (video.paused) {
+          playIcon.classList.add("active");
+          pauseIcon.classList.remove("active");
+        } else {
+          pauseIcon.classList.add("active");
+          playIcon.classList.remove("active");
+        }
+      }
 
       fileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
         if (file) {
-          baseFilename = file.name.replace(/\.[^/.]+$/, ""); // remove extension
+          baseFilename = file.name.replace(/\.[^/.]+$/, "");
           video.src = URL.createObjectURL(file);
+          video.style.display = "block";
+          fileInput.style.display = "none";
+        } else {
+          video.src = "";
+          video.style.display = "none";
+          fileInput.style.display = "block";
         }
       });
 
-      playPause.addEventListener("click", () => {
-        if (video.paused) video.play();
-        else video.pause();
+      video.addEventListener("loadedmetadata", () => {
+        const duration = video.duration;
+        const totalFrames = video.getVideoPlaybackQuality().totalVideoFrames;
+        console.log(video.getVideoPlaybackQuality());
+
+        console.log(`Duration: ${duration}`);
+        console.log(`Total Frames: ${totalFrames}`);
+
+        if (duration > 0 && totalFrames > 0) {
+          const averageFps = totalFrames / duration;
+          fps = averageFps;
+        } else {
+          fps = 30;
+        }
+        console.log(`FPS: ${fps}`);
       });
+
+      playPause.addEventListener("click", () => {
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      });
+
+      video.addEventListener("play", updatePlayPauseIcon);
+      video.addEventListener("pause", updatePlayPauseIcon);
+      updatePlayPauseIcon();
 
       document.getElementById("back10").onclick = () => (video.currentTime -= 10);
       document.getElementById("forward10").onclick = () => (video.currentTime += 10);
-
       document.getElementById("nextFrame").onclick = () => {
         video.pause();
         video.currentTime += 1 / fps;
@@ -130,6 +399,27 @@
         link.href = canvas.toDataURL("image/png");
         link.download = filename;
         link.click();
+      });
+
+      const otherBtn = document.getElementById("other");
+      const popupOverlay = document.getElementById("popupOverlay");
+      const closePopupBtn = document.getElementById("closePopupBtn");
+
+      otherBtn.addEventListener("click", () => {
+        popupOverlay.style.display = "flex";
+      });
+
+      closePopupBtn.addEventListener("click", () => {
+        popupOverlay.style.display = "none";
+        fps = framerateSelect.value;
+        console.log(`FPS: ${fps}`);
+      });
+
+      // Optional: close popup when clicking outside the content
+      popupOverlay.addEventListener("click", (e) => {
+        if (e.target === popupOverlay) {
+          popupOverlay.style.display = "none";
+        }
       });
     </script>
     <button id="installBtn" onclick="installPWA()" style="display: none">Install App</button>
