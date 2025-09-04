@@ -146,15 +146,8 @@
     <video id="video" style="display: none"></video>
 
     <!-- Seekbar -->
-    <div class="seekbar-container" id="seekbarContainer" style="display: none;">
-      <input
-        type="range"
-        id="seekbar"
-        min="0"
-        max="100"
-        value="0"
-        step="0.01"
-      />
+    <div class="seekbar-container" id="seekbarContainer" style="display: none">
+      <input type="range" id="seekbar" min="0" max="100" value="0" step="0.01" />
       <div class="seekbar-labels">
         <span id="currentTimeLabel">00:00</span>
         <span id="durationLabel">00:00</span>
@@ -584,13 +577,9 @@
         const m = Math.floor((seconds % 3600) / 60);
         const s = Math.floor(seconds % 60);
         if (h > 0) {
-          return `${h.toString().padStart(2, "0")}:${m
-            .toString()
-            .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+          return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
         } else {
-          return `${m.toString().padStart(2, "0")}:${s
-            .toString()
-            .padStart(2, "0")}`;
+          return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
         }
       }
 
@@ -618,48 +607,64 @@
         seekbarContainer.style.display = "none";
       }
 
-    // Support for handleShare function (for POST /frameseeker-share in sw.js)
-    async function handleShareRequest(request) {
-      try {
-        const data = await request.json();
-        // Example: { type: "frame", filename: "...", imageData: "data:image/png;base64,..." }
-        if (data && data.type === "frame" && data.imageData) {
-          // Create a temporary link to download the image
-          const a = document.createElement("a");
-          a.href = data.imageData;
-          a.download = data.filename || "frame.png";
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          return new Response(JSON.stringify({ status: "success" }), {
-            status: 200,
-            headers: { "Content-Type": "application/json" }
-          });
-        } else {
-          return new Response(JSON.stringify({ status: "error", message: "Invalid data" }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" }
+      // Support for handleShare function (for POST /frameseeker-share in sw.js)
+      async function handleShareRequest(request) {
+        try {
+          const data = await request.json();
+          // Example: { type: "frame", filename: "...", imageData: "data:image/png;base64,..." }
+          if (data && data.type === "frame" && data.imageData) {
+            // Create a temporary link to download the image
+            const a = document.createElement("a");
+            a.href = data.imageData;
+            a.download = data.filename || "frame.png";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            return new Response(JSON.stringify({ status: "success" }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          } else {
+            return new Response(JSON.stringify({ status: "error", message: "Invalid data" }), {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+        } catch (e) {
+          return new Response(JSON.stringify({ status: "error", message: e.message }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
           });
         }
-      } catch (e) {
-        return new Response(JSON.stringify({ status: "error", message: e.message }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" }
+      }
+
+      // Listen for messages from the service worker for share events
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.addEventListener("message", async (event) => {
+          if (event.data && event.data.type === "frameseeker-share") {
+            const payload = event.data.payload || {};
+            // If a frame payload is sent in the future, keep backward compatibility
+            if (payload && payload.type === "frame") {
+              await handleShareRequest({ json: async () => payload });
+              return;
+            }
+            // Handle shared video files from Web Share Target
+            const files = payload.files || [];
+            if (Array.isArray(files) && files.length > 0) {
+              const file = files[0];
+              try {
+                const blobUrl = URL.createObjectURL(file);
+                baseFilename = file.name ? file.name.replace(/\.[^/.]+$/, "") : "Video";
+                video.src = blobUrl;
+                video.style.display = "block";
+                seekbarContainer.style.display = "flex";
+              } catch (e) {
+                console.error("Failed to load shared video:", e);
+              }
+            }
+          }
         });
       }
-    }
-
-    // Listen for messages from the service worker for share events
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.addEventListener("message", async (event) => {
-        if (event.data && event.data.type === "frameseeker-share") {
-          // event.data.payload should contain the share data
-          await handleShareRequest({
-            json: async () => event.data.payload
-          });
-        }
-      });
-    }
     </script>
   </body>
 </html>
