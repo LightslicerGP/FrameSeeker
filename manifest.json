@@ -13,7 +13,7 @@
     }
   ],
   "share_target": {
-    "action": "frameseeker-share",
+    "action": "",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {
