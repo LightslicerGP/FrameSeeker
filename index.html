@@ -617,6 +617,27 @@
       if (video.src === "" || video.style.display === "none") {
         seekbarContainer.style.display = "none";
       }
+
+      // --- Android Share Target API support ---
+      // This enables the app to receive shared videos from Android's share menu
+
+      // Check if the browser supports the launchQueue API (for share target)
+      if ('launchQueue' in window && 'files' in LaunchParams.prototype) {
+        window.launchQueue.setConsumer(async (launchParams) => {
+          if (!launchParams.files || launchParams.files.length === 0) return;
+          // Find the first video file
+          const videoFile = launchParams.files.find(file => file.type.startsWith('video/'));
+          if (videoFile) {
+            baseFilename = videoFile.name.replace(/\.[^/.]+$/, "");
+            video.src = URL.createObjectURL(videoFile);
+            video.style.display = "block";
+            seekbarContainer.style.display = "flex";
+          }
+        });
+      }
+
+      // Fallback for older Chrome versions (2023+): handle navigator.canShare and navigator.share
+      // (This is not for receiving, but for completeness, not needed for share target receive)
     </script>
   </body>
 </html>
