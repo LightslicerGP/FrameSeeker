@@ -618,26 +618,48 @@
         seekbarContainer.style.display = "none";
       }
 
-      // --- Android Share Target API support ---
-      // This enables the app to receive shared videos from Android's share menu
-
-      // Check if the browser supports the launchQueue API (for share target)
-      if ('launchQueue' in window && 'files' in LaunchParams.prototype) {
-        window.launchQueue.setConsumer(async (launchParams) => {
-          if (!launchParams.files || launchParams.files.length === 0) return;
-          // Find the first video file
-          const videoFile = launchParams.files.find(file => file.type.startsWith('video/'));
-          if (videoFile) {
-            baseFilename = videoFile.name.replace(/\.[^/.]+$/, "");
-            video.src = URL.createObjectURL(videoFile);
-            video.style.display = "block";
-            seekbarContainer.style.display = "flex";
-          }
+    // Support for handleShare function (for POST /frameseeker-share in sw.js)
+    async function handleShareRequest(request) {
+      try {
+        const data = await request.json();
+        // Example: { type: "frame", filename: "...", imageData: "data:image/png;base64,..." }
+        if (data && data.type === "frame" && data.imageData) {
+          // Create a temporary link to download the image
+          const a = document.createElement("a");
+          a.href = data.imageData;
+          a.download = data.filename || "frame.png";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          return new Response(JSON.stringify({ status: "success" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          });
+        } else {
+          return new Response(JSON.stringify({ status: "error", message: "Invalid data" }), {
+            status: 400,
+            headers: { "Content-Type": "application/json" }
+          });
+        }
+      } catch (e) {
+        return new Response(JSON.stringify({ status: "error", message: e.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" }
         });
       }
+    }
 
-      // Fallback for older Chrome versions (2023+): handle navigator.canShare and navigator.share
-      // (This is not for receiving, but for completeness, not needed for share target receive)
+    // Listen for messages from the service worker for share events
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener("message", async (event) => {
+        if (event.data && event.data.type === "frameseeker-share") {
+          // event.data.payload should contain the share data
+          await handleShareRequest({
+            json: async () => event.data.payload
+          });
+        }
+      });
+    }
     </script>
   </body>
 </html>
