@@ -10,37 +10,6 @@
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#ffffff" />
 
-    <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("sw.js");
-      }
-
-      let deferredPrompt;
-      window.addEventListener("beforeinstallprompt", (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById("installBtn").style.display = "block";
-      });
-
-      async function installPWA() {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === "accepted") {
-          console.log("PWA setup accepted");
-        }
-        deferredPrompt = null;
-        document.getElementById("installBtn").style.display = "none";
-      }
-
-      window.addEventListener("load", () => {
-        const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
-        if (isStandalone) {
-          document.getElementById("installBtn").style.display = "none";
-        }
-      });
-    </script>
-
     <style>
       body {
         display: flex;
@@ -53,8 +22,42 @@
         overflow: hidden;
         font-family: inter;
       }
+      p {
+        margin: 0px;
+      }
       video {
         width: 100vw;
+      }
+      .seekbar-container {
+        position: fixed;
+        bottom: 64px;
+        left: 0;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 1;
+        pointer-events: none;
+      }
+      #seekbar {
+        width: 90vw;
+        max-width: 900px;
+        margin: 0 auto;
+        pointer-events: auto;
+        accent-color: #ffffff;
+        background: transparent;
+        height: 24px;
+      }
+      .seekbar-labels {
+        width: 90vw;
+        max-width: 900px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #aaa;
+        margin-top: -4px;
+        pointer-events: none;
+        user-select: none;
       }
       .controls {
         position: fixed;
@@ -66,6 +69,7 @@
         margin-bottom: 8px;
         justify-content: center;
         width: 100vw;
+        z-index: 2;
       }
       button {
         padding: 8px 8px;
@@ -80,7 +84,6 @@
       }
       button > svg {
         display: block;
-        margin: auto;
       }
       #playPause svg {
         display: none;
@@ -105,17 +108,19 @@
         background: rgba(255, 255, 255, 0.25);
         backdrop-filter: blur(16px);
         border-radius: 32px;
-        width: 512px;
-        height: 256px;
+        width: 256px;
+        height: 128px;
         position: relative;
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: start;
+        padding: 16px;
+        gap: 8px;
       }
       #closePopupBtn {
         position: absolute;
-        width: 32px;
-        height: 32px;
+        /* width: 32px; */
+        /* height: 32px; */
         top: 16px;
         right: 16px;
         border-radius: 16px;
@@ -131,10 +136,30 @@
         width: 24px;
         height: 24px;
       }
+
+      #fileInput {
+        display: none;
+      }
     </style>
   </head>
   <body>
     <video id="video" style="display: none"></video>
+
+    <!-- Seekbar -->
+    <div class="seekbar-container" id="seekbarContainer" style="display: none;">
+      <input
+        type="range"
+        id="seekbar"
+        min="0"
+        max="100"
+        value="0"
+        step="0.01"
+      />
+      <div class="seekbar-labels">
+        <span id="currentTimeLabel">00:00</span>
+        <span id="durationLabel">00:00</span>
+      </div>
+    </div>
 
     <!-- Popup Div -->
     <div id="popupOverlay">
@@ -163,6 +188,26 @@
     </div>
 
     <div class="controls">
+      <button id="chooseVideoBtn" title="Choose Video">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-file-upload"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+          <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
+          <path d="M12 11v6" />
+          <path d="M9.5 13.5l2.5 -2.5l2.5 2.5" />
+        </svg>
+      </button>
       <input type="file" accept="video/mp4,video/webm,video/mov,video/x-matroska,video/mkv,video/*" id="fileInput" />
       <button id="other">
         <svg
@@ -310,16 +355,96 @@
         </svg>
       </button>
     </div>
+    <button id="installBtn" onclick="installPWA()" style="display: none">Install App</button>
 
-    <script>
+    <script defer>
+      // Helper functions for cookies
+      function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+          const date = new Date();
+          date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+          expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
+      }
+
+      function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(";");
+        for (let i = 0; i < ca.length; i++) {
+          let c = ca[i];
+          while (c.charAt(0) === " ") c = c.substring(1, c.length);
+          if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+        }
+        return null;
+      }
+
+      // pwa stuff
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js");
+      }
+
+      let deferredPrompt;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById("installBtn").style.display = "block";
+      });
+
+      async function installPWA() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          console.log("PWA setup accepted");
+        }
+        deferredPrompt = null;
+        document.getElementById("installBtn").style.display = "none";
+      }
+
+      window.addEventListener("load", () => {
+        const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+        if (isStandalone) {
+          document.getElementById("installBtn").style.display = "none";
+        }
+      });
+
+      // main functionality
       const video = document.getElementById("video");
       const fileInput = document.getElementById("fileInput");
+      const chooseVideoBtn = document.getElementById("chooseVideoBtn");
       const playPause = document.getElementById("playPause");
       const captureBtn = document.getElementById("captureFrame");
       const pauseIcon = document.getElementById("pauseIcon");
       const playIcon = document.getElementById("playIcon");
       let baseFilename = "Video";
       let fps;
+
+      // Seekbar elements
+      const seekbarContainer = document.getElementById("seekbarContainer");
+      const seekbar = document.getElementById("seekbar");
+      const currentTimeLabel = document.getElementById("currentTimeLabel");
+      const durationLabel = document.getElementById("durationLabel");
+
+      // Try to load fps from cookie, fallback to 30 if not set
+      function loadFpsFromCookie() {
+        const cookieFps = getCookie("currentfps");
+        if (cookieFps && !isNaN(cookieFps)) {
+          fps = Number(cookieFps);
+        } else {
+          fps = 30;
+        }
+      }
+      loadFpsFromCookie();
+
+      // Set framerate input to current fps when popup opens
+      function setFramerateInput() {
+        const frInput = document.getElementById("framerateSelect");
+        if (frInput) {
+          frInput.value = fps;
+        }
+      }
 
       function updatePlayPauseIcon() {
         if (video.paused) {
@@ -331,17 +456,23 @@
         }
       }
 
+      chooseVideoBtn.addEventListener("click", () => {
+        fileInput.value = "";
+        fileInput.click();
+      });
+
       fileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
         if (file) {
           baseFilename = file.name.replace(/\.[^/.]+$/, "");
           video.src = URL.createObjectURL(file);
           video.style.display = "block";
-          fileInput.style.display = "none";
+          // Show seekbar when video is loaded
+          seekbarContainer.style.display = "flex";
         } else {
           video.src = "";
           video.style.display = "none";
-          fileInput.style.display = "block";
+          seekbarContainer.style.display = "none";
         }
       });
 
@@ -356,10 +487,22 @@
         if (duration > 0 && totalFrames > 0) {
           const averageFps = totalFrames / duration;
           fps = averageFps;
+          setCookie("currentfps", fps, 365);
         } else {
-          fps = 30;
+          // Only set fps to 30 if not already set by cookie
+          if (!getCookie("currentfps")) {
+            fps = 30;
+            setCookie("currentfps", fps, 365);
+          }
         }
         console.log(`FPS: ${fps}`);
+
+        // Set seekbar max and duration label
+        seekbar.max = duration;
+        seekbar.value = 0;
+        durationLabel.textContent = formatTime(duration);
+        currentTimeLabel.textContent = formatTime(0);
+        seekbarContainer.style.display = "flex";
       });
 
       playPause.addEventListener("click", () => {
@@ -404,15 +547,20 @@
       const otherBtn = document.getElementById("other");
       const popupOverlay = document.getElementById("popupOverlay");
       const closePopupBtn = document.getElementById("closePopupBtn");
+      const framerateSelect = document.getElementById("framerateSelect");
 
       otherBtn.addEventListener("click", () => {
+        setFramerateInput();
         popupOverlay.style.display = "flex";
       });
 
       closePopupBtn.addEventListener("click", () => {
         popupOverlay.style.display = "none";
-        fps = framerateSelect.value;
-        console.log(`FPS: ${fps}`);
+        if (framerateSelect.value && !isNaN(framerateSelect.value)) {
+          fps = Number(framerateSelect.value);
+          setCookie("currentfps", fps, 365);
+          console.log(`FPS: ${fps}`);
+        }
       });
 
       // Optional: close popup when clicking outside the content
@@ -421,7 +569,54 @@
           popupOverlay.style.display = "none";
         }
       });
+
+      // On page load, set framerate input to cookie value if present
+      window.addEventListener("DOMContentLoaded", () => {
+        setFramerateInput();
+      });
+
+      // --- Seekbar Functionality ---
+
+      // Format seconds as mm:ss or hh:mm:ss
+      function formatTime(seconds) {
+        if (isNaN(seconds)) return "00:00";
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        if (h > 0) {
+          return `${h.toString().padStart(2, "0")}:${m
+            .toString()
+            .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        } else {
+          return `${m.toString().padStart(2, "0")}:${s
+            .toString()
+            .padStart(2, "0")}`;
+        }
+      }
+
+      // Update seekbar as video plays
+      video.addEventListener("timeupdate", () => {
+        if (!isNaN(video.duration)) {
+          seekbar.value = video.currentTime;
+          currentTimeLabel.textContent = formatTime(video.currentTime);
+        }
+      });
+
+      // Seek video when seekbar is changed
+      let isSeeking = false;
+      seekbar.addEventListener("input", (e) => {
+        isSeeking = true;
+        currentTimeLabel.textContent = formatTime(Number(seekbar.value));
+      });
+      seekbar.addEventListener("change", (e) => {
+        video.currentTime = Number(seekbar.value);
+        isSeeking = false;
+      });
+
+      // Hide seekbar if no video loaded
+      if (video.src === "" || video.style.display === "none") {
+        seekbarContainer.style.display = "none";
+      }
     </script>
-    <button id="installBtn" onclick="installPWA()" style="display: none">Install App</button>
   </body>
 </html>
