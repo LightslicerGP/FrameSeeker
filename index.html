@@ -380,6 +380,7 @@
       window.addEventListener("beforeinstallprompt", (e) => {
         e.preventDefault();
         deferredPrompt = e;
+        console.log("pwa not installed");
         document.getElementById("installBtn").style.display = "block";
       });
 
@@ -388,15 +389,17 @@
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === "accepted") {
-          console.log("PWA setup accepted");
+          console.log("pwa installed");
         }
         deferredPrompt = null;
         document.getElementById("installBtn").style.display = "none";
+        console.log("pwa installed");
       }
 
       window.addEventListener("load", () => {
         const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
         if (isStandalone) {
+          console.log("pwa standalone");
           document.getElementById("installBtn").style.display = "none";
         }
         if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
