@@ -24,23 +24,32 @@ if (workbox.navigationPreload.isSupported()) {
     workbox.navigationPreload.enable();
 }
 
-self.addEventListener('fetch', (event) => {
-    if (event.request.mode === 'navigate') {
+self.addEventListener("fetch", (event) => {
+    const url = new URL(event.request.url);
+
+    // Handle share target
+    const isShareTarget = url.pathname.endsWith("videoIncoming");
+    if (isShareTarget && event.request.method === "POST") {
+        event.respondWith(handleShare(event.request));
+        return;
+    }
+    if (isShareTarget && event.request.method === "GET" && event.request.destination === "document") {
+        const rootUrl = new URL("./", self.registration.scope).href;
+        event.respondWith(Response.redirect(rootUrl));
+        return;
+    }
+
+    // Handle offline navigation
+    if (event.request.mode === "navigate") {
         event.respondWith((async () => {
             try {
                 const preloadResp = await event.preloadResponse;
+                if (preloadResp) return preloadResp;
 
-                if (preloadResp) {
-                    return preloadResp;
-                }
-
-                const networkResp = await fetch(event.request);
-                return networkResp;
-            } catch (error) {
-
+                return await fetch(event.request);
+            } catch {
                 const cache = await caches.open(CACHE);
-                const cachedResp = await cache.match(offlineFallbackPage);
-                return cachedResp;
+                return await cache.match(offlineFallbackPage);
             }
         })());
     }
@@ -51,20 +60,6 @@ self.addEventListener("activate", event => {
 });
 
 let lastSharePayload = null;
-
-self.addEventListener('fetch', event => {
-    const url = new URL(event.request.url);
-    const isShareTarget = url.pathname.endsWith('/videoIncoming') || url.pathname.endsWith('videoIncoming');
-    if (isShareTarget && event.request.method === 'POST') {
-        event.respondWith(handleShare(event.request));
-        return;
-    }
-    if (isShareTarget && event.request.method === 'GET' && event.request.destination === 'document') {
-        const rootUrl = new URL('./', self.registration.scope).href;
-        event.respondWith(Response.redirect(rootUrl));
-        return;
-    }
-});
 
 self.addEventListener('message', async (event) => {
     if (!event || !event.data) return;
