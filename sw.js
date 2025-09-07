@@ -6,9 +6,29 @@ self.addEventListener("activate", event => {
     clients.claim();
 });
 
+let lastSharePayload = null;
+
 self.addEventListener('fetch', event => {
-    if (event.request.method === 'POST' && event.request.url.includes('/frameseeker-share')) {
+    const url = new URL(event.request.url);
+    const isShareTarget = url.pathname.endsWith('/frameseeker-share') || url.pathname.endsWith('frameseeker-share');
+    if (isShareTarget && event.request.method === 'POST') {
         event.respondWith(handleShare(event.request));
+        return;
+    }
+    if (isShareTarget && event.request.method === 'GET' && event.request.destination === 'document') {
+        const rootUrl = new URL('./', self.registration.scope).href;
+        event.respondWith(Response.redirect(rootUrl));
+        return;
+    }
+});
+
+self.addEventListener('message', async (event) => {
+    if (!event || !event.data) return;
+    if (event.data.type === 'request-last-share' && lastSharePayload) {
+        try {
+            event.source && event.source.postMessage({ type: 'frameseeker-share', payload: lastSharePayload });
+            lastSharePayload = null;
+        } catch (_) { }
     }
 });
 
@@ -34,6 +54,7 @@ async function handleShare(request) {
         }
 
         const payload = { title, text, url, files };
+        lastSharePayload = payload;
 
         const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
         let client = clientList && clientList.length ? clientList[0] : null;
@@ -42,7 +63,7 @@ async function handleShare(request) {
             client = await clients.openWindow(rootUrl);
         }
         if (client) {
-            client.postMessage({ type: 'frameseeker-share', payload });
+            try { client.postMessage({ type: 'frameseeker-share', payload }); } catch (_) { }
         }
 
         // Respond with a simple page; Android will show this after sharing

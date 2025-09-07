@@ -401,6 +401,12 @@
         if (isStandalone) {
           document.getElementById("installBtn").style.display = "none";
         }
+        // Ask SW for any last share payload in case postMessage arrived before page was ready
+        if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+          try {
+            navigator.serviceWorker.controller.postMessage({ type: "request-last-share" });
+          } catch (e) {}
+        }
       });
 
       // main functionality
