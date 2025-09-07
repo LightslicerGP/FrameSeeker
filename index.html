@@ -351,7 +351,6 @@
     <button id="installBtn" onclick="installPWA()" style="display: none">Install App</button>
 
     <script defer>
-      // Helper functions for cookies
       function setCookie(name, value, days) {
         let expires = "";
         if (days) {
@@ -373,7 +372,6 @@
         return null;
       }
 
-      // pwa stuff
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("sw.js");
       }
@@ -401,7 +399,6 @@
         if (isStandalone) {
           document.getElementById("installBtn").style.display = "none";
         }
-        // Ask SW for any last share payload in case postMessage arrived before page was ready
         if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
           try {
             navigator.serviceWorker.controller.postMessage({ type: "request-last-share" });
@@ -409,7 +406,6 @@
         }
       });
 
-      // main functionality
       const video = document.getElementById("video");
       const fileInput = document.getElementById("fileInput");
       const chooseVideoBtn = document.getElementById("chooseVideoBtn");
@@ -420,13 +416,11 @@
       let baseFilename = "Video";
       let fps;
 
-      // Seekbar elements
       const seekbarContainer = document.getElementById("seekbarContainer");
       const seekbar = document.getElementById("seekbar");
       const currentTimeLabel = document.getElementById("currentTimeLabel");
       const durationLabel = document.getElementById("durationLabel");
 
-      // Try to load fps from cookie, fallback to 30 if not set
       function loadFpsFromCookie() {
         const cookieFps = getCookie("currentfps");
         if (cookieFps && !isNaN(cookieFps)) {
@@ -437,7 +431,6 @@
       }
       loadFpsFromCookie();
 
-      // Set framerate input to current fps when popup opens
       function setFramerateInput() {
         const frInput = document.getElementById("framerateSelect");
         if (frInput) {
@@ -460,20 +453,38 @@
         fileInput.click();
       });
 
-      fileInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
+      function loadVideo(file, filename) {
         if (file) {
-          baseFilename = file.name.replace(/\.[^/.]+$/, "");
+          baseFilename = filename.replace(/\.[^/.]+$/, "");
           video.src = URL.createObjectURL(file);
           video.style.display = "block";
-          // Show seekbar when video is loaded
           seekbarContainer.style.display = "flex";
         } else {
           video.src = "";
           video.style.display = "none";
           seekbarContainer.style.display = "none";
         }
+      }
+
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          loadVideo(file, file.name);
+        } else {
+          loadVideo(null, "");
+        }
       });
+
+      if ("launchQueue" in window) {
+        launchQueue.setConsumer(async (launchParams) => {
+          if (!launchParams.files.length) return;
+          for (const handle of launchParams.files) {
+            const file = await handle.getFile();
+            loadVideo(file, file.name);
+            break;
+          }
+        });
+      }
 
       video.addEventListener("loadedmetadata", () => {
         const duration = video.duration;
@@ -488,7 +499,6 @@
           fps = averageFps;
           setCookie("currentfps", fps, 365);
         } else {
-          // Only set fps to 30 if not already set by cookie
           if (!getCookie("currentfps")) {
             fps = 30;
             setCookie("currentfps", fps, 365);
@@ -496,7 +506,6 @@
         }
         console.log(`FPS: ${fps}`);
 
-        // Set seekbar max and duration label
         seekbar.max = duration;
         seekbar.value = 0;
         durationLabel.textContent = formatTime(duration);
@@ -562,21 +571,16 @@
         }
       });
 
-      // Optional: close popup when clicking outside the content
       popupOverlay.addEventListener("click", (e) => {
         if (e.target === popupOverlay) {
           popupOverlay.style.display = "none";
         }
       });
 
-      // On page load, set framerate input to cookie value if present
       window.addEventListener("DOMContentLoaded", () => {
         setFramerateInput();
       });
 
-      // --- Seekbar Functionality ---
-
-      // Format seconds as mm:ss or hh:mm:ss
       function formatTime(seconds) {
         if (isNaN(seconds)) return "00:00";
         const h = Math.floor(seconds / 3600);
@@ -589,7 +593,6 @@
         }
       }
 
-      // Update seekbar as video plays
       video.addEventListener("timeupdate", () => {
         if (!isNaN(video.duration)) {
           seekbar.value = video.currentTime;
@@ -597,7 +600,6 @@
         }
       });
 
-      // Seek video when seekbar is changed
       let isSeeking = false;
       seekbar.addEventListener("input", (e) => {
         isSeeking = true;
@@ -608,18 +610,14 @@
         isSeeking = false;
       });
 
-      // Hide seekbar if no video loaded
       if (video.src === "" || video.style.display === "none") {
         seekbarContainer.style.display = "none";
       }
 
-      // Support for handleShare function (for POST /frameseeker-share in sw.js)
       async function handleShareRequest(request) {
         try {
           const data = await request.json();
-          // Example: { type: "frame", filename: "...", imageData: "data:image/png;base64,..." }
           if (data && data.type === "frame" && data.imageData) {
-            // Create a temporary link to download the image
             const a = document.createElement("a");
             a.href = data.imageData;
             a.download = data.filename || "frame.png";
@@ -644,17 +642,14 @@
         }
       }
 
-      // Listen for messages from the service worker for share events
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.addEventListener("message", async (event) => {
           if (event.data && event.data.type === "frameseeker-share") {
             const payload = event.data.payload || {};
-            // If a frame payload is sent in the future, keep backward compatibility
             if (payload && payload.type === "frame") {
               await handleShareRequest({ json: async () => payload });
               return;
             }
-            // Handle shared video files from Web Share Target
             const files = payload.files || [];
             if (Array.isArray(files) && files.length > 0) {
               const file = files[0];

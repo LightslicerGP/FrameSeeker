@@ -12,12 +12,13 @@ self.addEventListener("message", (event) => {
     }
 });
 
-self.addEventListener('install', async (event) => {
+self.addEventListener("install", event => {
     event.waitUntil(
-        caches.open(CACHE)
-            .then((cache) => cache.add(offlineFallbackPage))
+        caches.open(CACHE).then(cache => cache.add(offlineFallbackPage))
     );
+    self.skipWaiting();
 });
+
 
 if (workbox.navigationPreload.isSupported()) {
     workbox.navigationPreload.enable();
@@ -43,10 +44,6 @@ self.addEventListener('fetch', (event) => {
             }
         })());
     }
-});
-
-self.addEventListener("install", event => {
-    self.skipWaiting();
 });
 
 self.addEventListener("activate", event => {
