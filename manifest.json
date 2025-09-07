@@ -1,7 +1,8 @@
 {
   "name": "FrameSeeker (OneUI) App",
   "short_name": "FrameSeeker",
-  "start_url": ".",
+  "start_url": "./",
+  "scope": "./",
   "display": "fullscreen",
   "background_color": "#ffffff",
   "theme_color": "#0080ff",
@@ -11,12 +12,17 @@
   "id": "FrameSeeker",
   "description": "A PWA (or possibly an actual app) that allows you to view and save frames of a video.",
   "share_target": {
-    "action": "/videoIncoming",
+    "action": "./videoIncoming",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {
       "title": "title",
-      "files": [{ "name": "video", "accept": ["video/*"] }]
+      "files": [
+        {
+          "name": "video",
+          "accept": ["video/*"]
+        }
+      ]
     }
   },
   "icons": [
