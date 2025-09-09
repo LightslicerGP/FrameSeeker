@@ -109,7 +109,7 @@
         backdrop-filter: blur(16px);
         border-radius: 32px;
         width: 256px;
-        height: 128px;
+        min-height: 160px;
         position: relative;
         display: flex;
         flex-direction: column;
@@ -140,6 +140,35 @@
       #fileInput {
         display: none;
       }
+      #popupFileLabel {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        color: #000;
+        background: rgba(255,255,255,0.15);
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 15px;
+        margin-top: 8px;
+        margin-bottom: 8px;
+        user-select: none;
+      }
+      #popupFileLabel svg {
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      #popupFileName {
+        font-size: 13px;
+        color: #333;
+        margin-left: 4px;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     </style>
   </head>
   <body>
@@ -159,6 +188,30 @@
       <div id="popupContent">
         <p>Select Framerate:</p>
         <input type="number" id="framerateSelect" min="1" max="360" />
+        <!-- File input in popup -->
+        <label id="popupFileLabel" for="fileInput" style="display: flex;">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-file-upload"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+            <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
+            <path d="M12 11v6" />
+            <path d="M9.5 13.5l2.5 -2.5l2.5 2.5" />
+          </svg>
+          <span id="popupFileText">Choose Video</span>
+          <span id="popupFileName"></span>
+        </label>
+        <input type="file" accept="video/mp4,video/webm,video/mov,video/x-matroska,video/mkv,video/*" id="fileInput" style="display: none;" />
         <button id="closePopupBtn" title="Close">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -181,7 +234,7 @@
     </div>
 
     <div class="controls">
-      <button id="chooseVideoBtn" title="Choose Video">
+      <button id="chooseVideoBtn" title="Choose Video" style="display: none;">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -201,7 +254,6 @@
           <path d="M9.5 13.5l2.5 -2.5l2.5 2.5" />
         </svg>
       </button>
-      <input type="file" accept="video/mp4,video/webm,video/mov,video/x-matroska,video/mkv,video/*" id="fileInput" />
       <button id="other">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -451,10 +503,20 @@
         }
       }
 
-      chooseVideoBtn.addEventListener("click", () => {
-        fileInput.value = "";
-        fileInput.click();
-      });
+      // Hide or show the chooseVideoBtn depending on video loaded
+      function updateChooseVideoBtnVisibility() {
+        if (video.src && video.style.display !== "none") {
+          chooseVideoBtn.style.display = "none";
+        } else {
+          chooseVideoBtn.style.display = "flex";
+        }
+      }
+
+      // Remove old event listener for chooseVideoBtn, as file selection is now in popup
+      // chooseVideoBtn.addEventListener("click", () => {
+      //   fileInput.value = "";
+      //   fileInput.click();
+      // });
 
       function loadVideo(file, filename) {
         if (file) {
@@ -467,8 +529,11 @@
           video.style.display = "none";
           seekbarContainer.style.display = "none";
         }
+        updateChooseVideoBtnVisibility();
+        updatePopupFileUI();
       }
 
+      // File input change handler
       fileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -477,6 +542,24 @@
           loadVideo(null, "");
         }
       });
+
+      // Update popup file label and name
+      function updatePopupFileUI() {
+        const popupFileText = document.getElementById("popupFileText");
+        const popupFileName = document.getElementById("popupFileName");
+        if (video.src && video.style.display !== "none") {
+          // Show filename
+          let name = baseFilename;
+          if (!name || name === "Video") {
+            name = "Video loaded";
+          }
+          popupFileText.textContent = "Video Loaded:";
+          popupFileName.textContent = name;
+        } else {
+          popupFileText.textContent = "Choose Video";
+          popupFileName.textContent = "";
+        }
+      }
 
       if ("launchQueue" in window) {
         launchQueue.setConsumer(async (launchParams) => {
@@ -514,6 +597,13 @@
         durationLabel.textContent = formatTime(duration);
         currentTimeLabel.textContent = formatTime(0);
         seekbarContainer.style.display = "flex";
+        updateChooseVideoBtnVisibility();
+        updatePopupFileUI();
+      });
+
+      video.addEventListener("emptied", () => {
+        updateChooseVideoBtnVisibility();
+        updatePopupFileUI();
       });
 
       playPause.addEventListener("click", () => {
@@ -559,10 +649,12 @@
       const popupOverlay = document.getElementById("popupOverlay");
       const closePopupBtn = document.getElementById("closePopupBtn");
       const framerateSelect = document.getElementById("framerateSelect");
+      const popupFileLabel = document.getElementById("popupFileLabel");
 
       otherBtn.addEventListener("click", () => {
         setFramerateInput();
         popupOverlay.style.display = "flex";
+        updatePopupFileUI();
       });
 
       closePopupBtn.addEventListener("click", () => {
@@ -580,8 +672,17 @@
         }
       });
 
+      // When clicking the file label, clear file input if a video is not loaded
+      popupFileLabel.addEventListener("click", (e) => {
+        if (!(video.src && video.style.display !== "none")) {
+          fileInput.value = "";
+        }
+      });
+
       window.addEventListener("DOMContentLoaded", () => {
         setFramerateInput();
+        updateChooseVideoBtnVisibility();
+        updatePopupFileUI();
       });
 
       function formatTime(seconds) {
@@ -662,6 +763,8 @@
                 video.src = blobUrl;
                 video.style.display = "block";
                 seekbarContainer.style.display = "flex";
+                updateChooseVideoBtnVisibility();
+                updatePopupFileUI();
               } catch (e) {
                 console.error("Failed to load shared video:", e);
               }
