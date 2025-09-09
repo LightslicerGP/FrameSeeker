@@ -547,7 +547,7 @@
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         const frameNumber = Math.round(video.currentTime * fps);
-        const filename = `${baseFilename}-Frame${frameNumber.toString().padStart(3, "0")}.png`;
+        const filename = `${baseFilename}-Frame${frameNumber.toString().padStart(3, "0")}-FrameSeeker.png`;
 
         const link = document.createElement("a");
         link.href = canvas.toDataURL("image/png");
