@@ -39,6 +39,14 @@
         align-items: center;
         z-index: 1;
         pointer-events: none;
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .seekbar-container.hidden {
+        opacity: 0;
+        transform: translateY(100%);
+        pointer-events: none;
       }
       #seekbar {
         width: 90vw;
@@ -60,7 +68,7 @@
         pointer-events: none;
         user-select: none;
       }
-      .controls {
+      #controls {
         position: fixed;
         bottom: 0;
         display: flex;
@@ -71,6 +79,14 @@
         justify-content: center;
         width: 100vw;
         z-index: 2;
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #controls.hidden {
+        opacity: 0;
+        transform: translateY(100%);
+        pointer-events: none;
       }
       button {
         padding: 8px 8px;
@@ -147,7 +163,7 @@
         gap: 8px;
         cursor: pointer;
         color: #000;
-        background: rgba(255,255,255,0.15);
+        background: rgba(255, 255, 255, 0.15);
         border-radius: 8px;
         padding: 6px 10px;
         font-size: 15px;
@@ -175,22 +191,11 @@
   <body>
     <video id="video" style="display: none"></video>
 
-    <!-- Seekbar -->
-    <div class="seekbar-container" id="seekbarContainer" style="display: none">
-      <input type="range" id="seekbar" min="0" max="100" value="0" step="0.01" />
-      <div class="seekbar-labels">
-        <span id="currentTimeLabel">00:00</span>
-        <span id="durationLabel">00:00</span>
-      </div>
-    </div>
-
-    <!-- Popup Div -->
     <div id="popupOverlay">
       <div id="popupContent">
         <p>Select Framerate:</p>
         <input type="number" id="framerateSelect" min="1" max="360" />
-        <!-- File input in popup -->
-        <label id="popupFileLabel" for="fileInput" style="display: flex;">
+        <label id="popupFileLabel" for="fileInput" style="display: flex">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20"
@@ -212,7 +217,7 @@
           <span id="popupFileText">Choose Video</span>
           <span id="popupFileName"></span>
         </label>
-        <input type="file" accept="video/mp4,video/webm,video/mov,video/x-matroska,video/mkv,video/*" id="fileInput" style="display: none;" />
+        <input type="file" accept="video/mp4,video/webm,video/mov,video/x-matroska,video/mkv,video/*" id="fileInput" style="display: none" />
         <button id="closePopupBtn" title="Close">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -234,8 +239,16 @@
       </div>
     </div>
 
-    <div class="controls">
-      <button id="chooseVideoBtn" title="Choose Video" style="display: none;">
+    <div class="seekbar-container" id="seekbarContainer" style="display: none">
+      <input type="range" id="seekbar" min="0" max="100" value="0" step="0.01" />
+      <div class="seekbar-labels">
+        <span id="currentTimeLabel">00:00</span>
+        <span id="durationLabel">00:00</span>
+      </div>
+    </div>
+
+    <div id="controls">
+      <button id="chooseVideoBtn" title="Choose Video" style="display: none">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -404,88 +417,34 @@
     <button id="installBtn" onclick="installPWA()" style="display: none">Install App</button>
 
     <script defer>
-      function setCookie(name, value, days) {
-        let expires = "";
-        if (days) {
-          const date = new Date();
-          date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-          expires = "; expires=" + date.toUTCString();
-        }
-        document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
-      }
+      // Popup Overlay
+      const popupOverlay = document.getElementById("popupOverlay");
+      const closePopupBtn = document.getElementById("closePopupBtn");
+      const framerateSelect = document.getElementById("framerateSelect");
+      const popupFileLabel = document.getElementById("popupFileLabel");
+      const popupFileText = document.getElementById("popupFileText");
+      const popupFileName = document.getElementById("popupFileName"); /*  */
 
-      function getCookie(name) {
-        const nameEQ = name + "=";
-        const ca = document.cookie.split(";");
-        for (let i = 0; i < ca.length; i++) {
-          let c = ca[i];
-          while (c.charAt(0) === " ") c = c.substring(1, c.length);
-          if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
-        }
-        return null;
-      }
-
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("sw.js");
-      }
-
-      let deferredPrompt;
-      window.addEventListener("beforeinstallprompt", (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        console.log("pwa not installed");
-        document.getElementById("installBtn").style.display = "block";
-      });
-
-      async function installPWA() {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === "accepted") {
-          console.log("pwa installed");
-        }
-        deferredPrompt = null;
-        document.getElementById("installBtn").style.display = "none";
-        console.log("pwa installed");
-      }
-
-      window.addEventListener("load", () => {
-        const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
-        if (isStandalone) {
-          console.log("pwa standalone");
-          document.getElementById("installBtn").style.display = "none";
-        }
-        if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
-          try {
-            navigator.serviceWorker.controller.postMessage({ type: "request-last-share" });
-          } catch (e) {}
+      popupOverlay.addEventListener("click", (e) => {
+        if (e.target === popupOverlay) {
+          popupOverlay.style.display = "none";
         }
       });
 
-      const video = document.getElementById("video");
-      const fileInput = document.getElementById("fileInput");
-      const chooseVideoBtn = document.getElementById("chooseVideoBtn");
-      const playPause = document.getElementById("playPause");
-      const captureBtn = document.getElementById("captureFrame");
-      const pauseIcon = document.getElementById("pauseIcon");
-      const playIcon = document.getElementById("playIcon");
-      let baseFilename = "Video";
-      let fps;
-
-      const seekbarContainer = document.getElementById("seekbarContainer");
-      const seekbar = document.getElementById("seekbar");
-      const currentTimeLabel = document.getElementById("currentTimeLabel");
-      const durationLabel = document.getElementById("durationLabel");
-
-      function loadFpsFromCookie() {
-        const cookieFps = getCookie("currentfps");
-        if (cookieFps && !isNaN(cookieFps)) {
-          fps = Number(cookieFps);
-        } else {
-          fps = 30;
+      closePopupBtn.addEventListener("click", () => {
+        popupOverlay.style.display = "none";
+        if (framerateSelect.value && !isNaN(framerateSelect.value)) {
+          fps = Number(framerateSelect.value);
+          setCookie("currentfps", fps, 365);
+          console.log(`FPS: ${fps}`);
         }
-      }
-      loadFpsFromCookie();
+      });
+
+      popupFileLabel.addEventListener("click", (e) => {
+        if (!(video.src && video.style.display !== "none")) {
+          fileInput.value = "";
+        }
+      });
 
       function setFramerateInput() {
         const frInput = document.getElementById("framerateSelect");
@@ -494,84 +453,134 @@
         }
       }
 
-      function updatePlayPauseIcon() {
-        if (video.paused) {
-          playIcon.classList.add("active");
-          pauseIcon.classList.remove("active");
-        } else {
-          pauseIcon.classList.add("active");
-          playIcon.classList.remove("active");
-        }
+      // Seekbar
+      const seekbarContainer = document.getElementById("seekbarContainer");
+      const seekbar = document.getElementById("seekbar");
+      const currentTimeLabel = document.getElementById("currentTimeLabel");
+      const durationLabel = document.getElementById("durationLabel");
+
+      let isSeeking = false;
+
+      seekbar.addEventListener("input", (e) => {
+        isSeeking = true;
+        currentTimeLabel.textContent = formatTime(Number(seekbar.value));
+      });
+
+      seekbar.addEventListener("change", (e) => {
+        video.currentTime = Number(seekbar.value);
+        isSeeking = false;
+      });
+
+      seekbar.addEventListener("mousedown", () => {
+        showControls();
+      });
+
+      seekbar.addEventListener("mouseup", () => {
+        resetHideControlsTimer();
+      });
+
+      // Control Buttons
+      const controls = document.getElementById("controls");
+      const chooseVideoBtn = document.getElementById("chooseVideoBtn");
+      const otherBtn = document.getElementById("other");
+      const back10Btn = document.getElementById("back10");
+      const prevFrameBtn = document.getElementById("prevFrame");
+      const playPauseBtn = document.getElementById("playPause");
+      const pauseIcon = document.getElementById("pauseIcon");
+      const playIcon = document.getElementById("playIcon");
+      const nextFrameBtn = document.getElementById("nextFrame");
+      const forward10Btn = document.getElementById("forward10");
+      const captureBtn = document.getElementById("captureFrame");
+
+      if (chooseVideoBtn) {
+        chooseVideoBtn.addEventListener("click", () => {
+          resetHideControlsTimer();
+        });
       }
 
-      // Hide or show the chooseVideoBtn depending on video loaded
-      function updateChooseVideoBtnVisibility() {
-        if (video.src && video.style.display !== "none") {
-          chooseVideoBtn.style.display = "none";
-        } else {
-          chooseVideoBtn.style.display = "flex";
-        }
-      }
-
-      // Remove old event listener for chooseVideoBtn, as file selection is now in popup
-      // chooseVideoBtn.addEventListener("click", () => {
-      //   fileInput.value = "";
-      //   fileInput.click();
-      // });
-
-      function loadVideo(file, filename) {
-        if (file) {
-          baseFilename = filename.replace(/\.[^/.]+$/, "");
-          video.src = URL.createObjectURL(file);
-          video.style.display = "block";
-          seekbarContainer.style.display = "flex";
-        } else {
-          video.src = "";
-          video.style.display = "none";
-          seekbarContainer.style.display = "none";
-        }
-        updateChooseVideoBtnVisibility();
+      otherBtn.addEventListener("click", () => {
+        setFramerateInput();
+        popupOverlay.style.display = "flex";
         updatePopupFileUI();
-      }
+        resetHideControlsTimer();
+      });
 
-      // File input change handler
-      fileInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          loadVideo(file, file.name);
+      back10Btn.onclick = () => {
+        video.currentTime -= 10;
+        resetHideControlsTimer();
+      };
+
+      prevFrameBtn.onclick = () => {
+        video.pause();
+        video.currentTime -= 1 / fps;
+        resetHideControlsTimer();
+      };
+
+      playPauseBtn.addEventListener("click", () => {
+        if (video.paused) {
+          video.play();
         } else {
-          loadVideo(null, "");
+          video.pause();
+        }
+        resetHideControlsTimer();
+      });
+
+      nextFrameBtn.onclick = () => {
+        video.pause();
+        video.currentTime += 1 / fps;
+        resetHideControlsTimer();
+      };
+
+      forward10Btn.onclick = () => {
+        video.currentTime += 10;
+        resetHideControlsTimer();
+      };
+
+      captureBtn.addEventListener("click", () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const frameNumber = Math.round(video.currentTime * fps);
+        const filename = `${baseFilename}-Frame${frameNumber.toString().padStart(3, "0")}-FrameSeeker.png`;
+
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/png");
+        link.download = filename;
+        link.click();
+        resetHideControlsTimer();
+      });
+
+      // Other Elements
+      const video = document.getElementById("video");
+      const fileInput = document.getElementById("fileInput");
+
+      video.addEventListener("play", () => {
+        updatePlayPauseIcon();
+        startHideControlsTimer();
+      });
+
+      video.addEventListener("pause", () => {
+        updatePlayPauseIcon();
+        if (hideControlsTimer) {
+          clearTimeout(hideControlsTimer);
+        }
+        showControls();
+      });
+      updatePlayPauseIcon();
+
+      video.addEventListener("timeupdate", () => {
+        if (!isNaN(video.duration)) {
+          seekbar.value = video.currentTime;
+          currentTimeLabel.textContent = formatTime(video.currentTime);
         }
       });
 
-      // Update popup file label and name
-      function updatePopupFileUI() {
-        const popupFileText = document.getElementById("popupFileText");
-        const popupFileName = document.getElementById("popupFileName");
-        if (video.src && video.style.display !== "none") {
-          // Show filename
-          let name = baseFilename;
-          if (!name || name === "Video") {
-            name = "Video loaded";
-          }
-          popupFileText.textContent = "Video Loaded:";
-          popupFileName.textContent = name;
-        } else {
-          popupFileText.textContent = "Choose Video";
-          popupFileName.textContent = "";
-        }
-      }
-
-      if ("launchQueue" in window) {
-        launchQueue.setConsumer(async (launchParams) => {
-          if (!launchParams.files.length) return;
-          for (const handle of launchParams.files) {
-            const file = await handle.getFile();
-            loadVideo(file, file.name);
-            break;
-          }
-        });
-      }
+      video.addEventListener("click", () => {
+        resetHideControlsTimer();
+      });
 
       video.addEventListener("loadedmetadata", () => {
         const duration = video.duration;
@@ -607,76 +616,84 @@
         updatePopupFileUI();
       });
 
-      playPause.addEventListener("click", () => {
-        if (video.paused) {
-          video.play();
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          loadVideo(file, file.name);
         } else {
-          video.pause();
+          loadVideo(null, "");
         }
       });
 
-      video.addEventListener("play", updatePlayPauseIcon);
-      video.addEventListener("pause", updatePlayPauseIcon);
-      updatePlayPauseIcon();
+      // Cookies
 
-      document.getElementById("back10").onclick = () => (video.currentTime -= 10);
-      document.getElementById("forward10").onclick = () => (video.currentTime += 10);
-      document.getElementById("nextFrame").onclick = () => {
-        video.pause();
-        video.currentTime += 1 / fps;
-      };
-      document.getElementById("prevFrame").onclick = () => {
-        video.pause();
-        video.currentTime -= 1 / fps;
-      };
-
-      captureBtn.addEventListener("click", () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        const frameNumber = Math.round(video.currentTime * fps);
-        const filename = `${baseFilename}-Frame${frameNumber.toString().padStart(3, "0")}-FrameSeeker.png`;
-
-        const link = document.createElement("a");
-        link.href = canvas.toDataURL("image/png");
-        link.download = filename;
-        link.click();
-      });
-
-      const otherBtn = document.getElementById("other");
-      const popupOverlay = document.getElementById("popupOverlay");
-      const closePopupBtn = document.getElementById("closePopupBtn");
-      const framerateSelect = document.getElementById("framerateSelect");
-      const popupFileLabel = document.getElementById("popupFileLabel");
-
-      otherBtn.addEventListener("click", () => {
-        setFramerateInput();
-        popupOverlay.style.display = "flex";
-        updatePopupFileUI();
-      });
-
-      closePopupBtn.addEventListener("click", () => {
-        popupOverlay.style.display = "none";
-        if (framerateSelect.value && !isNaN(framerateSelect.value)) {
-          fps = Number(framerateSelect.value);
-          setCookie("currentfps", fps, 365);
-          console.log(`FPS: ${fps}`);
+      function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+          const date = new Date();
+          date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+          expires = "; expires=" + date.toUTCString();
         }
-      });
+        document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
+      }
 
-      popupOverlay.addEventListener("click", (e) => {
-        if (e.target === popupOverlay) {
-          popupOverlay.style.display = "none";
+      function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(";");
+        for (let i = 0; i < ca.length; i++) {
+          let c = ca[i];
+          while (c.charAt(0) === " ") c = c.substring(1, c.length);
+          if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
         }
+        return null;
+      }
+
+      function loadFpsFromCookie() {
+        const cookieFps = getCookie("currentfps");
+        if (cookieFps && !isNaN(cookieFps)) {
+          fps = Number(cookieFps);
+        } else {
+          fps = 30;
+        }
+      }
+      loadFpsFromCookie();
+
+      // PWA
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js");
+      }
+
+      let deferredPrompt;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        console.log("pwa not installed");
+        console.log(e);
+        deferredPrompt = e.preventDefault();
+        document.getElementById("installBtn").style.display = "block";
       });
 
-      // When clicking the file label, clear file input if a video is not loaded
-      popupFileLabel.addEventListener("click", (e) => {
-        if (!(video.src && video.style.display !== "none")) {
-          fileInput.value = "";
+      async function installPWA() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          console.log("pwa installed");
+        }
+        deferredPrompt = null;
+        document.getElementById("installBtn").style.display = "none";
+        console.log("pwa installed");
+      }
+
+      window.addEventListener("load", () => {
+        const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+        if (isStandalone) {
+          console.log("pwa standalone");
+          document.getElementById("installBtn").style.display = "none";
+        }
+        if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+          try {
+            navigator.serviceWorker.controller.postMessage({ type: "request-last-share" });
+          } catch (e) {}
         }
       });
 
@@ -684,7 +701,140 @@
         setFramerateInput();
         updateChooseVideoBtnVisibility();
         updatePopupFileUI();
+        startHideControlsTimer();
       });
+
+      document.addEventListener("click", (e) => {
+        const isClickOnControls = controls.contains(e.target);
+        const isClickOnSeekbar = seekbarContainer.contains(e.target);
+        const isClickOnPopup = popupOverlay.contains(e.target);
+
+        if (!isClickOnControls && !isClickOnSeekbar && !isClickOnPopup) {
+          if (isControlsVisible) {
+            hideControls();
+          } else {
+            showControls();
+            if (!video.paused) {
+              startHideControlsTimer();
+            }
+          }
+        }
+      });
+
+      window.addEventListener("blur", () => {
+        if (!video.paused) {
+          startHideControlsTimer();
+        }
+      });
+
+      window.addEventListener("focus", () => {
+        showControls();
+        if (!video.paused) {
+          startHideControlsTimer();
+        }
+      });
+
+      let baseFilename = "Video";
+      let fps;
+
+      let hideControlsTimer = null;
+      let isControlsVisible = true;
+
+      function showControls() {
+        if (controls && seekbarContainer) {
+          controls.classList.remove("hidden");
+          seekbarContainer.classList.remove("hidden");
+          isControlsVisible = true;
+        }
+      }
+
+      function hideControls() {
+        if (controls && seekbarContainer) {
+          controls.classList.add("hidden");
+          seekbarContainer.classList.add("hidden");
+          isControlsVisible = false;
+        }
+      }
+
+      function startHideControlsTimer() {
+        if (hideControlsTimer) {
+          clearTimeout(hideControlsTimer);
+        }
+        hideControlsTimer = setTimeout(() => {
+          if (!video.paused) {
+            hideControls();
+          }
+        }, 3000);
+      }
+
+      function resetHideControlsTimer() {
+        showControls();
+        startHideControlsTimer();
+      }
+
+      function updatePlayPauseIcon() {
+        if (video.paused) {
+          playIcon.classList.add("active");
+          pauseIcon.classList.remove("active");
+        } else {
+          pauseIcon.classList.add("active");
+          playIcon.classList.remove("active");
+        }
+      }
+
+      function updateChooseVideoBtnVisibility() {
+        if (video.src && video.style.display !== "none") {
+          chooseVideoBtn.style.display = "none";
+        } else {
+          chooseVideoBtn.style.display = "flex";
+        }
+      }
+
+      // Remove old event listener for chooseVideoBtn, as file selection is now in popup
+      // chooseVideoBtn.addEventListener("click", () => {
+      //   fileInput.value = "";
+      //   fileInput.click();
+      // });
+
+      function loadVideo(file, filename) {
+        if (file) {
+          baseFilename = filename.replace(/\.[^/.]+$/, "");
+          video.src = URL.createObjectURL(file);
+          video.style.display = "block";
+          seekbarContainer.style.display = "flex";
+        } else {
+          video.src = "";
+          video.style.display = "none";
+          seekbarContainer.style.display = "none";
+        }
+        updateChooseVideoBtnVisibility();
+        updatePopupFileUI();
+      }
+
+      function updatePopupFileUI() {
+        if (video.src && video.style.display !== "none") {
+          let name = baseFilename;
+          if (!name || name === "Video") {
+            name = "Video loaded";
+          }
+          popupFileText.textContent = "Video Loaded:";
+          popupFileName.textContent = name;
+        } else {
+          popupFileText.textContent = "Choose Video";
+          popupFileName.textContent = "";
+        }
+      }
+
+      if ("launchQueue" in window) {
+        launchQueue.setConsumer(async (launchParams) => {
+          if (!launchParams.files.length) return;
+          for (const handle of launchParams.files) {
+            const file = await handle.getFile();
+            loadVideo(file, file.name);
+            break;
+          }
+        });
+      }
 
       function formatTime(seconds) {
         if (isNaN(seconds)) return "00:00";
@@ -697,23 +847,6 @@
           return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
         }
       }
-
-      video.addEventListener("timeupdate", () => {
-        if (!isNaN(video.duration)) {
-          seekbar.value = video.currentTime;
-          currentTimeLabel.textContent = formatTime(video.currentTime);
-        }
-      });
-
-      let isSeeking = false;
-      seekbar.addEventListener("input", (e) => {
-        isSeeking = true;
-        currentTimeLabel.textContent = formatTime(Number(seekbar.value));
-      });
-      seekbar.addEventListener("change", (e) => {
-        video.currentTime = Number(seekbar.value);
-        isSeeking = false;
-      });
 
       if (video.src === "" || video.style.display === "none") {
         seekbarContainer.style.display = "none";
