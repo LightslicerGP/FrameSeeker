@@ -540,6 +540,7 @@
 
       // Control Buttons
       const controls = document.getElementById("controls");
+      const preVideoMenu = document.getElementById("preVideo");
       const chooseVideoBtn = document.getElementById("chooseVideoBtn");
       const installBtn = document.getElementById("installBtn");
       const otherBtn = document.getElementById("other");
@@ -750,8 +751,7 @@
 
       function updateChooseVideoBtnVisibility() {
         if (video.src && video.style.display !== "none") {
-          chooseVideoBtn.style.display = "none";
-          installBtn.remove();
+          preVideoMenu.remove();
         } else {
           chooseVideoBtn.style.display = "flex";
         }
