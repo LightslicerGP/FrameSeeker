@@ -417,6 +417,12 @@
     <button id="installBtn" onclick="installPWA()" style="display: none">Install App</button>
 
     <script defer>
+      let baseFilename = "Video";
+      let fps;
+
+      let hideControlsTimer = null;
+      let isControlsVisible = true;
+
       // Popup Overlay
       const popupOverlay = document.getElementById("popupOverlay");
       const closePopupBtn = document.getElementById("closePopupBtn");
@@ -494,6 +500,8 @@
 
       if (chooseVideoBtn) {
         chooseVideoBtn.addEventListener("click", () => {
+          fileInput.value = "";
+          fileInput.click();
           resetHideControlsTimer();
         });
       }
@@ -525,6 +533,16 @@
         resetHideControlsTimer();
       });
 
+      function updatePlayPauseIcon() {
+        if (video.paused) {
+          playIcon.classList.add("active");
+          pauseIcon.classList.remove("active");
+        } else {
+          pauseIcon.classList.add("active");
+          playIcon.classList.remove("active");
+        }
+      }
+
       nextFrameBtn.onclick = () => {
         video.pause();
         video.currentTime += 1 / fps;
@@ -553,9 +571,75 @@
         resetHideControlsTimer();
       });
 
+      function resetHideControlsTimer() {
+        showControls();
+        startHideControlsTimer();
+      }
+
+      function startHideControlsTimer() {
+        if (hideControlsTimer) {
+          clearTimeout(hideControlsTimer);
+        }
+        hideControlsTimer = setTimeout(() => {
+          if (!video.paused) {
+            hideControls();
+          }
+        }, 3000);
+      }
+
+      function showControls() {
+        if (controls && seekbarContainer) {
+          controls.classList.remove("hidden");
+          seekbarContainer.classList.remove("hidden");
+          isControlsVisible = true;
+        }
+      }
+
+      function hideControls() {
+        if (controls && seekbarContainer) {
+          controls.classList.add("hidden");
+          seekbarContainer.classList.add("hidden");
+          isControlsVisible = false;
+        }
+      }
+
+      document.addEventListener("click", (e) => {
+        const isClickOnControls = controls.contains(e.target);
+        const isClickOnSeekbar = seekbarContainer.contains(e.target);
+        const isClickOnPopup = popupOverlay.contains(e.target);
+
+        if (!isClickOnControls && !isClickOnSeekbar && !isClickOnPopup) {
+          if (isControlsVisible) {
+            hideControls();
+          } else {
+            showControls();
+            if (!video.paused) {
+              startHideControlsTimer();
+            }
+          }
+        }
+      });
+
+      window.addEventListener("blur", () => {
+        if (!video.paused) {
+          startHideControlsTimer();
+        }
+      });
+
+      window.addEventListener("focus", () => {
+        showControls();
+        if (!video.paused) {
+          startHideControlsTimer();
+        }
+      });
+
       // Other Elements
       const video = document.getElementById("video");
       const fileInput = document.getElementById("fileInput");
+
+      if (video.src === "" || video.style.display === "none") {
+        seekbarContainer.style.display = "none";
+      }
 
       video.addEventListener("play", () => {
         updatePlayPauseIcon();
@@ -624,6 +708,55 @@
           loadVideo(null, "");
         }
       });
+
+      function formatTime(seconds) {
+        if (isNaN(seconds)) return "00:00";
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        if (h > 0) {
+          return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        } else {
+          return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        }
+      }
+
+      function updatePopupFileUI() {
+        if (video.src && video.style.display !== "none") {
+          let name = baseFilename;
+          if (!name || name === "Video") {
+            name = "Video loaded";
+          }
+          popupFileText.textContent = "Video Loaded:";
+          popupFileName.textContent = name;
+        } else {
+          popupFileText.textContent = "Choose Video";
+          popupFileName.textContent = "";
+        }
+      }
+
+      function updateChooseVideoBtnVisibility() {
+        if (video.src && video.style.display !== "none") {
+          chooseVideoBtn.style.display = "none";
+        } else {
+          chooseVideoBtn.style.display = "flex";
+        }
+      }
+
+      function loadVideo(file, filename) {
+        if (file) {
+          baseFilename = filename.replace(/\.[^/.]+$/, "");
+          video.src = URL.createObjectURL(file);
+          video.style.display = "block";
+          seekbarContainer.style.display = "flex";
+        } else {
+          video.src = "";
+          video.style.display = "none";
+          seekbarContainer.style.display = "none";
+        }
+        updateChooseVideoBtnVisibility();
+        updatePopupFileUI();
+      }
 
       // Cookies
 
@@ -704,127 +837,6 @@
         startHideControlsTimer();
       });
 
-      document.addEventListener("click", (e) => {
-        const isClickOnControls = controls.contains(e.target);
-        const isClickOnSeekbar = seekbarContainer.contains(e.target);
-        const isClickOnPopup = popupOverlay.contains(e.target);
-
-        if (!isClickOnControls && !isClickOnSeekbar && !isClickOnPopup) {
-          if (isControlsVisible) {
-            hideControls();
-          } else {
-            showControls();
-            if (!video.paused) {
-              startHideControlsTimer();
-            }
-          }
-        }
-      });
-
-      window.addEventListener("blur", () => {
-        if (!video.paused) {
-          startHideControlsTimer();
-        }
-      });
-
-      window.addEventListener("focus", () => {
-        showControls();
-        if (!video.paused) {
-          startHideControlsTimer();
-        }
-      });
-
-      let baseFilename = "Video";
-      let fps;
-
-      let hideControlsTimer = null;
-      let isControlsVisible = true;
-
-      function showControls() {
-        if (controls && seekbarContainer) {
-          controls.classList.remove("hidden");
-          seekbarContainer.classList.remove("hidden");
-          isControlsVisible = true;
-        }
-      }
-
-      function hideControls() {
-        if (controls && seekbarContainer) {
-          controls.classList.add("hidden");
-          seekbarContainer.classList.add("hidden");
-          isControlsVisible = false;
-        }
-      }
-
-      function startHideControlsTimer() {
-        if (hideControlsTimer) {
-          clearTimeout(hideControlsTimer);
-        }
-        hideControlsTimer = setTimeout(() => {
-          if (!video.paused) {
-            hideControls();
-          }
-        }, 3000);
-      }
-
-      function resetHideControlsTimer() {
-        showControls();
-        startHideControlsTimer();
-      }
-
-      function updatePlayPauseIcon() {
-        if (video.paused) {
-          playIcon.classList.add("active");
-          pauseIcon.classList.remove("active");
-        } else {
-          pauseIcon.classList.add("active");
-          playIcon.classList.remove("active");
-        }
-      }
-
-      function updateChooseVideoBtnVisibility() {
-        if (video.src && video.style.display !== "none") {
-          chooseVideoBtn.style.display = "none";
-        } else {
-          chooseVideoBtn.style.display = "flex";
-        }
-      }
-
-      // Remove old event listener for chooseVideoBtn, as file selection is now in popup
-      // chooseVideoBtn.addEventListener("click", () => {
-      //   fileInput.value = "";
-      //   fileInput.click();
-      // });
-
-      function loadVideo(file, filename) {
-        if (file) {
-          baseFilename = filename.replace(/\.[^/.]+$/, "");
-          video.src = URL.createObjectURL(file);
-          video.style.display = "block";
-          seekbarContainer.style.display = "flex";
-        } else {
-          video.src = "";
-          video.style.display = "none";
-          seekbarContainer.style.display = "none";
-        }
-        updateChooseVideoBtnVisibility();
-        updatePopupFileUI();
-      }
-
-      function updatePopupFileUI() {
-        if (video.src && video.style.display !== "none") {
-          let name = baseFilename;
-          if (!name || name === "Video") {
-            name = "Video loaded";
-          }
-          popupFileText.textContent = "Video Loaded:";
-          popupFileName.textContent = name;
-        } else {
-          popupFileText.textContent = "Choose Video";
-          popupFileName.textContent = "";
-        }
-      }
-
       if ("launchQueue" in window) {
         launchQueue.setConsumer(async (launchParams) => {
           if (!launchParams.files.length) return;
@@ -834,22 +846,6 @@
             break;
           }
         });
-      }
-
-      function formatTime(seconds) {
-        if (isNaN(seconds)) return "00:00";
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = Math.floor(seconds % 60);
-        if (h > 0) {
-          return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-        } else {
-          return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-        }
-      }
-
-      if (video.src === "" || video.style.display === "none") {
-        seekbarContainer.style.display = "none";
       }
 
       async function handleShareRequest(request) {
