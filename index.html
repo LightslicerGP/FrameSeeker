@@ -11,6 +11,9 @@
     <meta name="theme-color" content="#ffffff" />
 
     <style>
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
       body {
         display: flex;
         margin: 0;
@@ -24,6 +27,9 @@
       }
       p {
         margin: 0px;
+      }
+      svg {
+        display: block;
       }
       #video {
         width: 100vw;
@@ -88,9 +94,10 @@
         transform: translateY(100%);
         pointer-events: none;
       }
-      button {
+      #controls > div {
+        gap: 8px;
         padding: 8px 8px;
-        border-radius: 8px;
+        border-radius: 24px;
         border: none;
         cursor: pointer;
         background: rgba(255, 255, 255, 0.25);
@@ -99,14 +106,21 @@
         align-items: center;
         justify-content: center;
       }
-      button > svg {
-        display: block;
+      #controls > #center {
+        padding: 8px 16px;
       }
+      /* button > svg {
+        display: block;
+      } */
+      /* button {
+        background: none;
+        border: none;
+      } */
       #playPause svg {
         display: none;
       }
       #playPause .active {
-        display: inline;
+        display: block;
       }
 
       #popupOverlay {
@@ -202,7 +216,7 @@
             height="20"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="currentColor"
+            stroke="#000000"
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -248,14 +262,14 @@
     </div>
 
     <div id="controls">
-      <button id="chooseVideoBtn" title="Choose Video" style="display: none">
+      <div id="chooseVideoBtn" title="Choose Video" style="display: none">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
           height="24"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="currentColor"
+          stroke="#000000"
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -267,8 +281,9 @@
           <path d="M12 11v6" />
           <path d="M9.5 13.5l2.5 -2.5l2.5 2.5" />
         </svg>
-      </button>
-      <button id="other">
+      </div>
+
+      <div id="other">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -286,111 +301,115 @@
           <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
           <path d="M19 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
         </svg>
-      </button>
-      <button id="back10">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#000000"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-backward-10"
-        >
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M7 9l-3 -3l3 -3" />
-          <path d="M15.997 17.918a6.002 6.002 0 0 0 -.997 -11.918h-11" />
-          <path d="M6 14v6" />
-          <path d="M9 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
-        </svg>
-      </button>
-      <button id="prevFrame">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#000000"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-left-pipe"
-        >
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M7 6v12" />
-          <path d="M18 6l-6 6l6 6" />
-        </svg>
-      </button>
-      <button id="playPause">
-        <svg
-          id="pauseIcon"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="#000000"
-          class="icon icon-tabler icons-tabler-filled icon-tabler-player-pause active"
-        >
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M9 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z" />
-          <path d="M17 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z" />
-        </svg>
-        <svg
-          id="playIcon"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="#000000"
-          class="icon icon-tabler icons-tabler-filled icon-tabler-player-play"
-        >
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z" />
-        </svg>
-      </button>
-      <button id="nextFrame">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#000000"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-right-pipe"
-        >
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M6 6l6 6l-6 6" />
-          <path d="M17 5v13" />
-        </svg>
-      </button>
-      <button id="forward10">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#000000"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-forward-10"
-        >
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M17 9l3 -3l-3 -3" />
-          <path d="M8 17.918a5.997 5.997 0 0 1 -5 -5.918a6 6 0 0 1 6 -6h11" />
-          <path d="M12 14v6" />
-          <path d="M15 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
-        </svg>
-      </button>
-      <button id="captureFrame">
+      </div>
+
+      <div id="center">
+        <div id="back10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-backward-10"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M7 9l-3 -3l3 -3" />
+            <path d="M15.997 17.918a6.002 6.002 0 0 0 -.997 -11.918h-11" />
+            <path d="M6 14v6" />
+            <path d="M9 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
+          </svg>
+        </div>
+        <div id="prevFrame">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-left-pipe"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M7 6v12" />
+            <path d="M18 6l-6 6l6 6" />
+          </svg>
+        </div>
+        <div id="playPause">
+          <svg
+            id="pauseIcon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="#000000"
+            class="icon icon-tabler icons-tabler-filled icon-tabler-player-pause active"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M9 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z" />
+            <path d="M17 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z" />
+          </svg>
+          <svg
+            id="playIcon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="#000000"
+            class="icon icon-tabler icons-tabler-filled icon-tabler-player-play"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z" />
+          </svg>
+        </div>
+        <div id="nextFrame">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-right-pipe"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M6 6l6 6l-6 6" />
+            <path d="M17 5v13" />
+          </svg>
+        </div>
+        <div id="forward10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-forward-10"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M17 9l3 -3l-3 -3" />
+            <path d="M8 17.918a5.997 5.997 0 0 1 -5 -5.918a6 6 0 0 1 6 -6h11" />
+            <path d="M12 14v6" />
+            <path d="M15 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
+          </svg>
+        </div>
+      </div>
+
+      <div id="captureFrame">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -412,7 +431,7 @@
           <path d="M16 4h2a2 2 0 0 1 2 2v2" />
           <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
         </svg>
-      </button>
+      </div>
     </div>
     <button id="installBtn" onclick="installPWA()" style="display: none">Install App</button>
 
@@ -420,7 +439,6 @@
       let baseFilename = "Video";
       let fps;
 
-      let hideControlsTimer = null;
       let isControlsVisible = true;
 
       // Popup Overlay
@@ -481,10 +499,6 @@
         showControls();
       });
 
-      seekbar.addEventListener("mouseup", () => {
-        resetHideControlsTimer();
-      });
-
       // Control Buttons
       const controls = document.getElementById("controls");
       const chooseVideoBtn = document.getElementById("chooseVideoBtn");
@@ -502,7 +516,6 @@
         chooseVideoBtn.addEventListener("click", () => {
           fileInput.value = "";
           fileInput.click();
-          resetHideControlsTimer();
         });
       }
 
@@ -510,18 +523,15 @@
         setFramerateInput();
         popupOverlay.style.display = "flex";
         updatePopupFileUI();
-        resetHideControlsTimer();
       });
 
       back10Btn.onclick = () => {
         video.currentTime -= 10;
-        resetHideControlsTimer();
       };
 
       prevFrameBtn.onclick = () => {
         video.pause();
         video.currentTime -= 1 / fps;
-        resetHideControlsTimer();
       };
 
       playPauseBtn.addEventListener("click", () => {
@@ -530,7 +540,6 @@
         } else {
           video.pause();
         }
-        resetHideControlsTimer();
       });
 
       function updatePlayPauseIcon() {
@@ -546,12 +555,10 @@
       nextFrameBtn.onclick = () => {
         video.pause();
         video.currentTime += 1 / fps;
-        resetHideControlsTimer();
       };
 
       forward10Btn.onclick = () => {
         video.currentTime += 10;
-        resetHideControlsTimer();
       };
 
       captureBtn.addEventListener("click", () => {
@@ -568,24 +575,7 @@
         link.href = canvas.toDataURL("image/png");
         link.download = filename;
         link.click();
-        resetHideControlsTimer();
       });
-
-      function resetHideControlsTimer() {
-        showControls();
-        startHideControlsTimer();
-      }
-
-      function startHideControlsTimer() {
-        if (hideControlsTimer) {
-          clearTimeout(hideControlsTimer);
-        }
-        hideControlsTimer = setTimeout(() => {
-          if (!video.paused) {
-            hideControls();
-          }
-        }, 3000);
-      }
 
       function showControls() {
         if (controls && seekbarContainer) {
@@ -613,24 +603,12 @@
             hideControls();
           } else {
             showControls();
-            if (!video.paused) {
-              startHideControlsTimer();
-            }
           }
-        }
-      });
-
-      window.addEventListener("blur", () => {
-        if (!video.paused) {
-          startHideControlsTimer();
         }
       });
 
       window.addEventListener("focus", () => {
         showControls();
-        if (!video.paused) {
-          startHideControlsTimer();
-        }
       });
 
       // Other Elements
@@ -643,14 +621,11 @@
 
       video.addEventListener("play", () => {
         updatePlayPauseIcon();
-        startHideControlsTimer();
       });
 
       video.addEventListener("pause", () => {
         updatePlayPauseIcon();
-        if (hideControlsTimer) {
-          clearTimeout(hideControlsTimer);
-        }
+
         showControls();
       });
       updatePlayPauseIcon();
@@ -662,9 +637,7 @@
         }
       });
 
-      video.addEventListener("click", () => {
-        resetHideControlsTimer();
-      });
+      video.addEventListener("click", () => {});
 
       video.addEventListener("loadedmetadata", () => {
         const duration = video.duration;
@@ -834,7 +807,6 @@
         setFramerateInput();
         updateChooseVideoBtnVisibility();
         updatePopupFileUI();
-        startHideControlsTimer();
       });
 
       if ("launchQueue" in window) {
