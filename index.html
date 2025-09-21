@@ -602,7 +602,40 @@
         video.currentTime += 10;
       };
 
-      captureBtn.addEventListener("click", () => {
+      let saveDirHandle = null;
+
+      async function requestSaveDirectory() {
+        if (!window.showDirectoryPicker) return null;
+        try {
+          const handle = await window.showDirectoryPicker({ startIn: "pictures" });
+          const perm = await handle.requestPermission({ mode: "readwrite" });
+          if (perm === "granted") {
+            saveDirHandle = handle;
+            return handle;
+          }
+        } catch (_) {}
+        return null;
+      }
+
+      async function ensureSaveDirectory() {
+        if (saveDirHandle) {
+          const perm = await saveDirHandle.queryPermission({ mode: "readwrite" });
+          if (perm === "granted") return saveDirHandle;
+        }
+        return await requestSaveDirectory();
+      }
+
+      async function saveBlobToDir(filename, blob) {
+        const dir = await ensureSaveDirectory();
+        if (!dir) return false;
+        const fileHandle = await dir.getFileHandle(filename, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return true;
+      }
+
+      captureBtn.addEventListener("click", async () => {
         const canvas = document.createElement("canvas");
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -612,27 +645,22 @@
         const frameNumber = Math.round(video.currentTime * fps);
         const filename = `${baseFilename}-Frame${frameNumber.toString().padStart(3, "0")}-FrameSeeker.png`;
 
-        const link = document.createElement("a");
-        link.href = canvas.toDataURL("image/png");
-        link.download = filename;
-        link.click();
+        if (window.showDirectoryPicker) {
+          const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+          const ok = await saveBlobToDir(filename, blob);
+          if (!ok) {
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+          }
+        } else {
+          const link = document.createElement("a");
+          link.href = canvas.toDataURL("image/png");
+          link.download = filename;
+          link.click();
+        }
       });
-
-      function showControls() {
-        if (controls && seekbarContainer) {
-          controls.classList.remove("hidden");
-          seekbarContainer.classList.remove("hidden");
-          isControlsVisible = true;
-        }
-      }
-
-      function hideControls() {
-        if (controls && seekbarContainer) {
-          controls.classList.add("hidden");
-          seekbarContainer.classList.add("hidden");
-          isControlsVisible = false;
-        }
-      }
 
       document.addEventListener("click", (e) => {
         const isClickOnControls = controls.contains(e.target);
@@ -865,12 +893,36 @@
         try {
           const data = await request.json();
           if (data && data.type === "frame" && data.imageData) {
-            const a = document.createElement("a");
-            a.href = data.imageData;
-            a.download = data.filename || "frame.png";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            const filename = data.filename || "frame.png";
+            if (window.showDirectoryPicker) {
+              try {
+                const res = await fetch(data.imageData);
+                const blob = await res.blob();
+                const ok = await saveBlobToDir(filename, blob);
+                if (!ok) {
+                  const a = document.createElement("a");
+                  a.href = data.imageData;
+                  a.download = filename;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                }
+              } catch (_) {
+                const a = document.createElement("a");
+                a.href = data.imageData;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+              }
+            } else {
+              const a = document.createElement("a");
+              a.href = data.imageData;
+              a.download = filename;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            }
             return new Response(JSON.stringify({ status: "success" }), {
               status: 200,
               headers: { "Content-Type": "application/json" },
