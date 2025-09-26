@@ -13,7 +13,7 @@
 
   <style>
     * {
-      font-family: inter;
+      font-family: inter, monospace;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -47,8 +47,8 @@
       flex-direction: row;
       align-items: stretch;
       justify-content: stretch;
-      width: 100vw;
-      height: 100vh;
+      width: 100dvw;
+      height: 100dvh;
       padding: 32px;
       gap: 32px;
       box-sizing: border-box;
@@ -57,14 +57,14 @@
     #preVideo>* {
       border-radius: 32px;
       flex: 1 1 0;
-      min-width: 0;
-      min-height: 0;
+      /* min-width: 0;
+      min-height: 0; */
       color: #000000;
       font-size: 32px;
       background-color: rgba(255, 255, 255, 0.25);
       border: none;
-      width: 100%;
-      height: 100%;
+      /* width: 100%; */
+      /* height: 100%; */
       box-sizing: border-box;
       display: flex;
       align-items: center;
@@ -77,7 +77,7 @@
     }
 
     #video {
-      width: 100vw;
+      width: 100dvw;
       height: 100vh;
     }
 
@@ -85,7 +85,7 @@
       position: fixed;
       bottom: 48px;
       left: 0;
-      width: 100vw;
+      width: 100dvw;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -103,7 +103,7 @@
     }
 
     #seekbar {
-      width: 90vw;
+      width: 90dvw;
       max-width: 900px;
       margin: 0 auto;
       pointer-events: auto;
@@ -113,7 +113,7 @@
     }
 
     #seekbarLabels {
-      width: 90vw;
+      width: 90dvw;
       max-width: 900px;
       display: flex;
       justify-content: space-between;
@@ -132,7 +132,7 @@
       gap: 8px;
       margin-bottom: 12px;
       justify-content: center;
-      width: 100vw;
+      width: 100dvw;
       z-index: 2;
       transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
       opacity: 1;
@@ -176,8 +176,8 @@
       z-index: 2;
       left: 0;
       top: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100dvw;
+      height: 100dvh;
       align-items: center;
       justify-content: center;
     }
@@ -187,8 +187,8 @@
       background: rgba(255, 255, 255, 0.25);
       backdrop-filter: blur(16px);
       border-radius: 32px;
-      width: 256px;
-      min-height: 160px;
+      /* width: 256px; */
+      /* min-height: 160px; */
       position: relative;
       display: flex;
       flex-direction: column;
@@ -229,29 +229,62 @@
       cursor: pointer;
       color: #000;
       background: rgba(255, 255, 255, 0.15);
-      border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 15px;
-      margin-top: 8px;
-      margin-bottom: 8px;
+      border-radius: 16px;
+      padding: 8px 16px;
+      font-size: 16px;
       user-select: none;
     }
 
     #popupFileLabel svg {
-      width: 20px;
-      height: 20px;
+      width: 16px;
+      height: 16px;
       display: inline-block;
       vertical-align: middle;
     }
 
     #popupFileName {
-      font-size: 13px;
+      font-size: 12px;
       color: #333;
       margin-left: 4px;
       max-width: 120px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    #jumpToFrameContainer {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+      margin-bottom: 4px;
+      width: 100%;
+    }
+
+    #jumpToFrameInput,
+    #framerateSelect {
+      width: 128px;
+      font-size: 16px;
+      border-radius: 16px;
+      border: 1px solid #bbb;
+      padding: 8px 16px;
+      box-sizing: border-box;
+    }
+
+    #jumpToFrameBtn {
+      font-size: 16px;
+      border-radius: 16px;
+      border: none;
+      background: rgba(255, 255, 255, 0.15);
+      color: #000;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #jumpToFrameBtn:active {
+      background: rgba(255, 255, 255, 0.25);
     }
   </style>
 </head>
@@ -279,6 +312,10 @@
     <div id="popupContent">
       <p>Select Framerate:</p>
       <input type="number" id="framerateSelect" min="1" max="360" />
+      <div id="jumpToFrameContainer">
+        <input type="number" id="jumpToFrameInput" min="0" placeholder="Frame #" />
+        <button id="jumpToFrameBtn" type="button">Jump to Frame</button>
+      </div>
       <label id="popupFileLabel" for="fileInput" style="display: flex">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000"
           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -408,7 +445,9 @@
     const framerateSelect = document.getElementById("framerateSelect");
     const popupFileLabel = document.getElementById("popupFileLabel");
     const popupFileText = document.getElementById("popupFileText");
-    const popupFileName = document.getElementById("popupFileName"); /*  */
+    const popupFileName = document.getElementById("popupFileName");
+    const jumpToFrameInput = document.getElementById("jumpToFrameInput");
+    const jumpToFrameBtn = document.getElementById("jumpToFrameBtn");
 
     popupOverlay.addEventListener("click", (e) => {
       if (e.target === popupOverlay) {
@@ -431,10 +470,56 @@
       }
     });
 
+    // Helper to get current frame number
+    function getCurrentFrameNumber() {
+      if (!fps || isNaN(fps) || !video) return 0;
+      return Math.round((video.currentTime || 0) * fps);
+    }
+
     function setFramerateInput() {
       const frInput = document.getElementById("framerateSelect");
       if (frInput) {
         frInput.value = fps;
+      }
+      // Set jumpToFrameInput to current frame number
+      if (jumpToFrameInput) {
+        jumpToFrameInput.value = getCurrentFrameNumber();
+      }
+    }
+
+    function jumpToFrame(frameNum) {
+      if (!fps || isNaN(fps) || !video || isNaN(frameNum)) return;
+      // Clamp frameNum to valid range
+      frameNum = Math.max(0, Math.floor(frameNum));
+      const duration = video.duration || 0;
+      const maxFrame = Math.floor(duration * fps);
+      if (frameNum > maxFrame) frameNum = maxFrame;
+      video.currentTime = frameNum / fps;
+      // Optionally, close popup after jump
+      // popupOverlay.style.display = "none";
+    }
+
+    if (jumpToFrameBtn && jumpToFrameInput) {
+      jumpToFrameBtn.addEventListener("click", () => {
+        const val = Number(jumpToFrameInput.value);
+        if (!isNaN(val) && val >= 0) {
+          jumpToFrame(val);
+        }
+      });
+      jumpToFrameInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const val = Number(jumpToFrameInput.value);
+          if (!isNaN(val) && val >= 0) {
+            jumpToFrame(val);
+          }
+        }
+      });
+    }
+
+    // Update jumpToFrameInput value to current frame when popup opens
+    function updateJumpToFrameInput() {
+      if (jumpToFrameInput) {
+        jumpToFrameInput.value = getCurrentFrameNumber();
       }
     }
 
@@ -484,6 +569,7 @@
 
     otherBtn.addEventListener("click", () => {
       setFramerateInput();
+      updateJumpToFrameInput();
       popupOverlay.style.display = "flex";
       updatePopupFileUI();
     });
@@ -495,6 +581,7 @@
     prevFrameBtn.onclick = () => {
       video.pause();
       video.currentTime -= 1 / fps;
+      updateJumpToFrameInput();
     };
 
     playPauseBtn.addEventListener("click", () => {
@@ -518,6 +605,7 @@
     nextFrameBtn.onclick = () => {
       video.pause();
       video.currentTime += 1 / fps;
+      updateJumpToFrameInput();
     };
 
     forward10Btn.onclick = () => {
@@ -599,7 +687,7 @@
         isControlsVisible = false;
       }
     };
-    
+
     document.addEventListener("click", (e) => {
       const isClickOnControls = controls.contains(e.target);
       const isClickOnSeekbar = seekbarContainer.contains(e.target);
@@ -641,6 +729,10 @@
       if (!isNaN(video.duration)) {
         seekbar.value = video.currentTime;
         currentTimeLabel.textContent = formatTime(video.currentTime);
+        // If popup is open, update jumpToFrameInput to current frame
+        if (popupOverlay.style.display === "flex") {
+          updateJumpToFrameInput();
+        }
       }
     });
 
@@ -673,11 +765,13 @@
       seekbarContainer.style.display = "flex";
       updateChooseVideoBtnVisibility();
       updatePopupFileUI();
+      updateJumpToFrameInput();
     });
 
     video.addEventListener("emptied", () => {
       updateChooseVideoBtnVisibility();
       updatePopupFileUI();
+      updateJumpToFrameInput();
     });
 
     fileInput.addEventListener("change", (e) => {
@@ -687,6 +781,7 @@
       } else {
         loadVideo(null, "");
       }
+      updateJumpToFrameInput();
     });
 
     function formatTime(seconds) {
@@ -736,6 +831,7 @@
       }
       updateChooseVideoBtnVisibility();
       updatePopupFileUI();
+      updateJumpToFrameInput();
     }
 
     // Cookies
@@ -814,6 +910,7 @@
       setFramerateInput();
       updateChooseVideoBtnVisibility();
       updatePopupFileUI();
+      updateJumpToFrameInput();
     });
 
     if ("launchQueue" in window) {
@@ -898,6 +995,7 @@
               seekbarContainer.style.display = "flex";
               updateChooseVideoBtnVisibility();
               updatePopupFileUI();
+              updateJumpToFrameInput();
             } catch (e) {
               console.error("Failed to load shared video:", e);
             }
