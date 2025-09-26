@@ -1,940 +1,1041 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FrameSeeker</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FrameSeeker</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="Icons/icon-512.png" />
 
-  <link rel="icon" type="image/png" sizes="512x512" href="Icons/icon-512.png" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#ffffff" />
 
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#ffffff" />
+    <style>
+      * {
+        font-family: inter, monospace;
+        -webkit-tap-highlight-color: transparent;
+      }
 
-  <style>
-    * {
-      font-family: inter, monospace;
-      -webkit-tap-highlight-color: transparent;
-    }
+      body {
+        display: flex;
+        margin: 0;
+        padding: 0;
+        flex-direction: column;
+        align-items: center;
+        background: #000000;
+        color: #ffffff;
+        overflow: hidden;
+      }
 
-    body {
-      display: flex;
-      margin: 0;
-      padding: 0;
-      flex-direction: column;
-      align-items: center;
-      background: #000000;
-      color: #ffffff;
-      overflow: hidden;
-    }
+      p {
+        margin: 0px;
+      }
 
-    p {
-      margin: 0px;
-    }
+      svg {
+        display: block;
+        width: 24px;
+        height: 24px;
+      }
 
-    svg {
-      display: block;
-      width: 24px;
-      height: 24px;
-    }
+      button {
+        padding: 0px;
+      }
 
-    button {
-      padding: 0px;
-    }
+      #preVideo {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        justify-content: stretch;
+        width: 100dvw;
+        height: 100dvh;
+        padding: 32px;
+        gap: 32px;
+        box-sizing: border-box;
+      }
 
-    #preVideo {
-      display: flex;
-      flex-direction: row;
-      align-items: stretch;
-      justify-content: stretch;
-      width: 100dvw;
-      height: 100dvh;
-      padding: 32px;
-      gap: 32px;
-      box-sizing: border-box;
-    }
-
-    #preVideo>* {
-      border-radius: 32px;
-      flex: 1 1 0;
-      /* min-width: 0;
+      #preVideo > * {
+        border-radius: 32px;
+        flex: 1 1 0;
+        /* min-width: 0;
       min-height: 0; */
-      color: #000000;
-      font-size: 32px;
-      background-color: rgba(255, 255, 255, 0.25);
-      border: none;
-      /* width: 100%; */
-      /* height: 100%; */
-      box-sizing: border-box;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+        color: #000000;
+        font-size: 32px;
+        background-color: rgba(255, 255, 255, 0.25);
+        border: none;
+        /* width: 100%; */
+        /* height: 100%; */
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-    #chooseVideoBtn>svg {
-      width: 64px;
-      height: 64px;
-    }
+      #chooseVideoBtn > svg {
+        width: 64px;
+        height: 64px;
+      }
 
-    #video {
-      width: 100dvw;
-      height: 100vh;
-    }
+      #video {
+        width: 100dvw;
+        height: 100vh;
+      }
 
-    #seekbarContainer {
-      position: fixed;
-      bottom: 48px;
-      left: 0;
-      width: 100dvw;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      z-index: 1;
-      pointer-events: none;
-      transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-      opacity: 1;
-      transform: translateY(0);
-    }
+      #seekbarContainer {
+        position: fixed;
+        bottom: 48px;
+        left: 0;
+        width: 100dvw;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 1;
+        pointer-events: none;
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        opacity: 1;
+        transform: translateY(0);
+      }
 
-    #seekbarContainer.hidden {
-      opacity: 0;
-      transform: translateY(100%);
-      pointer-events: none;
-    }
+      #seekbarContainer.hidden {
+        opacity: 0;
+        transform: translateY(100%);
+        pointer-events: none;
+      }
 
-    #seekbar {
-      width: 90dvw;
-      max-width: 900px;
-      margin: 0 auto;
-      pointer-events: auto;
-      accent-color: #ffffff;
-      background: transparent;
-      height: 24px;
-    }
+      #seekbar {
+        width: 90dvw;
+        max-width: 900px;
+        margin: 0 auto;
+        pointer-events: auto;
+        accent-color: #ffffff;
+        background: transparent;
+        height: 24px;
+      }
 
-    #seekbarLabels {
-      width: 90dvw;
-      max-width: 900px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: #aaa;
-      margin-top: -4px;
-      pointer-events: none;
-      user-select: none;
-    }
+      #seekbarLabels {
+        width: 90dvw;
+        max-width: 900px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #aaa;
+        margin-top: -4px;
+        pointer-events: none;
+        user-select: none;
+      }
 
-    #controls {
-      position: fixed;
-      bottom: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 12px;
-      justify-content: center;
-      width: 100dvw;
-      z-index: 2;
-      transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-      opacity: 1;
-      transform: translateY(0);
-    }
+      #controls {
+        position: fixed;
+        bottom: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
+        justify-content: center;
+        width: 100dvw;
+        z-index: 2;
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        opacity: 1;
+        transform: translateY(0);
+      }
 
-    #controls.hidden {
-      opacity: 0;
-      transform: translateY(100%);
-      pointer-events: none;
-    }
+      #controls.hidden {
+        opacity: 0;
+        transform: translateY(100%);
+        pointer-events: none;
+      }
 
-    #controls>div {
-      gap: 8px;
-      padding: 8px;
-      border-radius: 24px;
-      border: none;
-      cursor: pointer;
-      background: rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(16px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+      #controls > div {
+        gap: 8px;
+        padding: 8px;
+        border-radius: 24px;
+        border: none;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(16px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-    #controls>#center {
-      padding: 8px 12px;
-    }
+      #controls > #center {
+        padding: 8px 12px;
+      }
 
-    #playPause svg {
-      display: none;
-    }
+      #playPause svg {
+        display: none;
+      }
 
-    #playPause .active {
-      display: block;
-    }
+      #playPause .active {
+        display: block;
+      }
 
-    #popupOverlay {
-      display: none;
-      position: fixed;
-      z-index: 2;
-      left: 0;
-      top: 0;
-      width: 100dvw;
-      height: 100dvh;
-      align-items: center;
-      justify-content: center;
-    }
+      #popupOverlay {
+        display: none;
+        position: fixed;
+        z-index: 2;
+        left: 0;
+        top: 0;
+        width: 100dvw;
+        height: 100dvh;
+        align-items: center;
+        justify-content: center;
+      }
 
-    #popupContent {
-      color: #000000;
-      background: rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(16px);
-      border-radius: 32px;
-      /* width: 256px; */
-      /* min-height: 160px; */
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: start;
-      padding: 16px;
-      gap: 8px;
-    }
+      #popupContent {
+        color: #000000;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(16px);
+        border-radius: 32px;
+        /* width: 256px; */
+        /* min-height: 160px; */
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        padding: 16px;
+        gap: 8px;
+      }
 
-    #closePopupBtn {
-      position: absolute;
-      /* width: 32px; */
-      /* height: 32px; */
-      top: 16px;
-      right: 16px;
-      border-radius: 16px;
-      background: none;
-      border: none;
-      color: #000000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
+      #closePopupBtn {
+        position: absolute;
+        /* width: 32px; */
+        /* height: 32px; */
+        top: 16px;
+        right: 16px;
+        border-radius: 16px;
+        background: none;
+        border: none;
+        color: #000000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
 
-    #closePopupBtn>svg {
-      width: 24px;
-      height: 24px;
-    }
+      #closePopupBtn > svg {
+        width: 24px;
+        height: 24px;
+      }
 
-    #fileInput {
-      display: none;
-    }
+      #fileInput {
+        display: none;
+      }
 
-    #popupFileLabel {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      color: #000;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 16px;
-      padding: 8px 16px;
-      font-size: 16px;
-      user-select: none;
-    }
+      #popupFileLabel {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        color: #000;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 16px;
+        padding: 8px 16px;
+        font-size: 16px;
+        user-select: none;
+      }
 
-    #popupFileLabel svg {
-      width: 16px;
-      height: 16px;
-      display: inline-block;
-      vertical-align: middle;
-    }
+      #popupFileLabel svg {
+        width: 16px;
+        height: 16px;
+        display: inline-block;
+        vertical-align: middle;
+      }
 
-    #popupFileName {
-      font-size: 12px;
-      color: #333;
-      margin-left: 4px;
-      max-width: 120px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+      #popupFileName {
+        font-size: 12px;
+        color: #333;
+        margin-left: 4px;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
-    #jumpToFrameContainer {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: 6px;
-      margin-top: 4px;
-      margin-bottom: 4px;
-      width: 100%;
-    }
+      #jumpToFrameContainer {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        margin-top: 4px;
+        margin-bottom: 4px;
+        width: 100%;
+      }
 
-    #jumpToFrameInput,
-    #framerateSelect {
-      width: 128px;
-      font-size: 16px;
-      border-radius: 16px;
-      border: 1px solid #bbb;
-      padding: 8px 16px;
-      box-sizing: border-box;
-    }
+      #jumpToFrameInput,
+      #framerateSelect {
+        width: 128px;
+        font-size: 16px;
+        border-radius: 16px;
+        border: 1px solid #bbb;
+        padding: 8px 16px;
+        box-sizing: border-box;
+      }
 
-    #jumpToFrameBtn {
-      font-size: 16px;
-      border-radius: 16px;
-      border: none;
-      background: rgba(255, 255, 255, 0.15);
-      color: #000;
-      padding: 8px 16px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+      #jumpToFrameBtn {
+        font-size: 16px;
+        border-radius: 16px;
+        border: none;
+        background: rgba(255, 255, 255, 0.15);
+        color: #000;
+        padding: 8px 16px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
 
-    #jumpToFrameBtn:active {
-      background: rgba(255, 255, 255, 0.25);
-    }
-  </style>
-</head>
+      #jumpToFrameBtn:active {
+        background: rgba(255, 255, 255, 0.25);
+      }
+    </style>
+  </head>
 
-<body>
-  <div id="preVideo">
-    <button id="installBtn" onclick="installPWA()" style="display: none">Install App</button>
+  <body>
+    <div id="preVideo">
+      <button id="installBtn" onclick="installPWA()" style="display: none">Install App</button>
 
-    <div id="chooseVideoBtn" title="Choose Video" style="display: none">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        class="icon icon-tabler icons-tabler-outline icon-tabler-file-upload">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-        <path d="M14 3v4a1 1 0 0 0 1 1h4" />
-        <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
-        <path d="M12 11v6" />
-        <path d="M9.5 13.5l2.5 -2.5l2.5 2.5" />
-      </svg>
-    </div>
-  </div>
-
-  <video id="video" style="display: none"></video>
-
-  <div id="popupOverlay">
-    <div id="popupContent">
-      <p>Select Framerate:</p>
-      <input type="number" id="framerateSelect" min="1" max="360" />
-      <div id="jumpToFrameContainer">
-        <input type="number" id="jumpToFrameInput" min="0" placeholder="Frame #" />
-        <button id="jumpToFrameBtn" type="button">Jump to Frame</button>
-      </div>
-      <label id="popupFileLabel" for="fileInput" style="display: flex">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000000"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          class="icon icon-tabler icons-tabler-outline icon-tabler-file-upload">
+      <div id="chooseVideoBtn" title="Choose Video" style="display: none">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000000"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-file-upload"
+        >
           <path stroke="none" d="M0 0h24v24H0z" fill="none" />
           <path d="M14 3v4a1 1 0 0 0 1 1h4" />
           <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
           <path d="M12 11v6" />
           <path d="M9.5 13.5l2.5 -2.5l2.5 2.5" />
         </svg>
-        <span id="popupFileText">Choose Video</span>
-        <span id="popupFileName"></span>
-      </label>
-      <input type="file" accept="video/mp4,video/webm,video/mov,video/x-matroska,video/mkv,video/*" id="fileInput"
-        style="display: none" />
-      <button id="closePopupBtn" title="Close">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          class="icon icon-tabler icons-tabler-outline icon-tabler-circle-x">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
-          <path d="M10 10l4 4m0 -4l-4 4" />
-        </svg>
-      </button>
-    </div>
-  </div>
-
-  <div id="seekbarContainer" style="display: none">
-    <input type="range" id="seekbar" min="0" max="100" value="0" step="0.01" />
-    <div id="seekbarLabels">
-      <span id="currentTimeLabel">00:00</span>
-      <span id="durationLabel">00:00</span>
-    </div>
-  </div>
-
-  <div id="controls">
-    <div id="other">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        class="icon icon-tabler icons-tabler-outline icon-tabler-dots">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-        <path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
-        <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
-        <path d="M19 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
-      </svg>
-    </div>
-    <div id="center">
-      <div id="back10">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-backward-10">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M7 9l-3 -3l3 -3" />
-          <path d="M15.997 17.918a6.002 6.002 0 0 0 -.997 -11.918h-11" />
-          <path d="M6 14v6" />
-          <path d="M9 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
-        </svg>
-      </div>
-      <div id="prevFrame">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-left-pipe">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M7 6v12" />
-          <path d="M18 6l-6 6l6 6" />
-        </svg>
-      </div>
-      <div id="playPause">
-        <svg id="pauseIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#000000"
-          class="icon icon-tabler icons-tabler-filled icon-tabler-player-pause active">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M9 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z" />
-          <path d="M17 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z" />
-        </svg>
-        <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#000000"
-          class="icon icon-tabler icons-tabler-filled icon-tabler-player-play">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z" />
-        </svg>
-      </div>
-      <div id="nextFrame">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-right-pipe">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M6 6l6 6l-6 6" />
-          <path d="M17 5v13" />
-        </svg>
-      </div>
-      <div id="forward10">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-forward-10">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path d="M17 9l3 -3l-3 -3" />
-          <path d="M8 17.918a5.997 5.997 0 0 1 -5 -5.918a6 6 0 0 1 6 -6h11" />
-          <path d="M12 14v6" />
-          <path d="M15 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
-        </svg>
       </div>
     </div>
-    <div id="captureFrame">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        class="icon icon-tabler icons-tabler-outline icon-tabler-photo-scan">
-        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-        <path d="M15 8h.01" />
-        <path d="M6 13l2.644 -2.644a1.21 1.21 0 0 1 1.712 0l3.644 3.644" />
-        <path d="M13 13l1.644 -1.644a1.21 1.21 0 0 1 1.712 0l1.644 1.644" />
-        <path d="M4 8v-2a2 2 0 0 1 2 -2h2" />
-        <path d="M4 16v2a2 2 0 0 0 2 2h2" />
-        <path d="M16 4h2a2 2 0 0 1 2 2v2" />
-        <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
-      </svg>
+
+    <video id="video" style="display: none"></video>
+
+    <div id="popupOverlay">
+      <div id="popupContent">
+        <p>Select Framerate:</p>
+        <input type="number" id="framerateSelect" min="1" max="360" />
+        <div id="jumpToFrameContainer">
+          <input type="number" id="jumpToFrameInput" min="0" placeholder="Frame #" />
+          <button id="jumpToFrameBtn" type="button">Jump to Frame</button>
+        </div>
+        <label id="popupFileLabel" for="fileInput" style="display: flex">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-file-upload"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+            <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
+            <path d="M12 11v6" />
+            <path d="M9.5 13.5l2.5 -2.5l2.5 2.5" />
+          </svg>
+          <span id="popupFileText">Choose Video</span>
+          <span id="popupFileName"></span>
+        </label>
+        <input type="file" accept="video/mp4,video/webm,video/mov,video/x-matroska,video/mkv,video/*" id="fileInput" style="display: none" />
+        <button id="closePopupBtn" title="Close">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-circle-x"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+            <path d="M10 10l4 4m0 -4l-4 4" />
+          </svg>
+        </button>
+      </div>
     </div>
-  </div>
 
-  <script defer>
-    let baseFilename = "Video";
-    let fps;
+    <div id="seekbarContainer" style="display: none">
+      <input type="range" id="seekbar" min="0" max="100" value="0" step="0.01" />
+      <div id="seekbarLabels">
+        <span id="currentTimeLabel">00:00</span>
+        <span id="durationLabel">00:00</span>
+      </div>
+    </div>
 
-    let isControlsVisible = true;
+    <div id="controls">
+      <div id="other">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000000"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-dots"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+          <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+          <path d="M19 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+        </svg>
+      </div>
+      <div id="center">
+        <div id="back10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-backward-10"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M7 9l-3 -3l3 -3" />
+            <path d="M15.997 17.918a6.002 6.002 0 0 0 -.997 -11.918h-11" />
+            <path d="M6 14v6" />
+            <path d="M9 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
+          </svg>
+        </div>
+        <div id="prevFrame">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-left-pipe"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M7 6v12" />
+            <path d="M18 6l-6 6l6 6" />
+          </svg>
+        </div>
+        <div id="playPause">
+          <svg
+            id="pauseIcon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="#000000"
+            class="icon icon-tabler icons-tabler-filled icon-tabler-player-pause active"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M9 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z" />
+            <path d="M17 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z" />
+          </svg>
+          <svg
+            id="playIcon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="#000000"
+            class="icon icon-tabler icons-tabler-filled icon-tabler-player-play"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z" />
+          </svg>
+        </div>
+        <div id="nextFrame">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-right-pipe"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M6 6l6 6l-6 6" />
+            <path d="M17 5v13" />
+          </svg>
+        </div>
+        <div id="forward10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-forward-10"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M17 9l3 -3l-3 -3" />
+            <path d="M8 17.918a5.997 5.997 0 0 1 -5 -5.918a6 6 0 0 1 6 -6h11" />
+            <path d="M12 14v6" />
+            <path d="M15 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
+          </svg>
+        </div>
+      </div>
+      <div id="captureFrame">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000000"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-photo-scan"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M15 8h.01" />
+          <path d="M6 13l2.644 -2.644a1.21 1.21 0 0 1 1.712 0l3.644 3.644" />
+          <path d="M13 13l1.644 -1.644a1.21 1.21 0 0 1 1.712 0l1.644 1.644" />
+          <path d="M4 8v-2a2 2 0 0 1 2 -2h2" />
+          <path d="M4 16v2a2 2 0 0 0 2 2h2" />
+          <path d="M16 4h2a2 2 0 0 1 2 2v2" />
+          <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
+        </svg>
+      </div>
+    </div>
 
-    // Popup Overlay
-    const popupOverlay = document.getElementById("popupOverlay");
-    const closePopupBtn = document.getElementById("closePopupBtn");
-    const framerateSelect = document.getElementById("framerateSelect");
-    const popupFileLabel = document.getElementById("popupFileLabel");
-    const popupFileText = document.getElementById("popupFileText");
-    const popupFileName = document.getElementById("popupFileName");
-    const jumpToFrameInput = document.getElementById("jumpToFrameInput");
-    const jumpToFrameBtn = document.getElementById("jumpToFrameBtn");
+    <script defer>
+      let baseFilename = "Video";
+      let fps;
 
-    popupOverlay.addEventListener("click", (e) => {
-      if (e.target === popupOverlay) {
-        popupOverlay.style.display = "none";
-      }
-    });
+      let isControlsVisible = true;
 
-    closePopupBtn.addEventListener("click", () => {
-      popupOverlay.style.display = "none";
-      if (framerateSelect.value && !isNaN(framerateSelect.value)) {
-        fps = Number(framerateSelect.value);
-        setCookie("currentfps", fps, 365);
-        console.log(`FPS: ${fps}`);
-      }
-    });
+      // Popup Overlay
+      const popupOverlay = document.getElementById("popupOverlay");
+      const closePopupBtn = document.getElementById("closePopupBtn");
+      const framerateSelect = document.getElementById("framerateSelect");
+      const popupFileLabel = document.getElementById("popupFileLabel");
+      const popupFileText = document.getElementById("popupFileText");
+      const popupFileName = document.getElementById("popupFileName");
+      const jumpToFrameInput = document.getElementById("jumpToFrameInput");
+      const jumpToFrameBtn = document.getElementById("jumpToFrameBtn");
 
-    popupFileLabel.addEventListener("click", (e) => {
-      if (!(video.src && video.style.display !== "none")) {
-        fileInput.value = "";
-      }
-    });
-
-    // Helper to get current frame number
-    function getCurrentFrameNumber() {
-      if (!fps || isNaN(fps) || !video) return 0;
-      return Math.round((video.currentTime || 0) * fps);
-    }
-
-    function setFramerateInput() {
-      const frInput = document.getElementById("framerateSelect");
-      if (frInput) {
-        frInput.value = fps;
-      }
-      // Set jumpToFrameInput to current frame number
-      if (jumpToFrameInput) {
-        jumpToFrameInput.value = getCurrentFrameNumber();
-      }
-    }
-
-    function jumpToFrame(frameNum) {
-      if (!fps || isNaN(fps) || !video || isNaN(frameNum)) return;
-      // Clamp frameNum to valid range
-      frameNum = Math.max(0, Math.floor(frameNum));
-      const duration = video.duration || 0;
-      const maxFrame = Math.floor(duration * fps);
-      if (frameNum > maxFrame) frameNum = maxFrame;
-      video.currentTime = frameNum / fps;
-      // Optionally, close popup after jump
-      // popupOverlay.style.display = "none";
-    }
-
-    if (jumpToFrameBtn && jumpToFrameInput) {
-      jumpToFrameBtn.addEventListener("click", () => {
-        const val = Number(jumpToFrameInput.value);
-        if (!isNaN(val) && val >= 0) {
-          jumpToFrame(val);
+      popupOverlay.addEventListener("click", (e) => {
+        if (e.target === popupOverlay) {
+          popupOverlay.style.display = "none";
         }
       });
-      jumpToFrameInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
+
+      closePopupBtn.addEventListener("click", () => {
+        popupOverlay.style.display = "none";
+        if (framerateSelect.value && !isNaN(framerateSelect.value)) {
+          fps = Number(framerateSelect.value);
+          setCookie("currentfps", fps, 365);
+          console.log(`FPS: ${fps}`);
+        }
+      });
+
+      popupFileLabel.addEventListener("click", (e) => {
+        if (!(video.src && video.style.display !== "none")) {
+          fileInput.value = "";
+        }
+      });
+
+      // Helper to get current frame number
+      function getCurrentFrameNumber() {
+        if (!fps || isNaN(fps) || !video) return 0;
+        return Math.round((video.currentTime || 0) * fps);
+      }
+
+      function setFramerateInput() {
+        const frInput = document.getElementById("framerateSelect");
+        if (frInput) {
+          frInput.value = fps;
+        }
+        // Set jumpToFrameInput to current frame number
+        if (jumpToFrameInput) {
+          jumpToFrameInput.value = getCurrentFrameNumber();
+        }
+      }
+
+      function jumpToFrame(frameNum) {
+        if (!fps || isNaN(fps) || !video || isNaN(frameNum)) return;
+        // Clamp frameNum to valid range
+        frameNum = Math.max(0, Math.floor(frameNum));
+        const duration = video.duration || 0;
+        const maxFrame = Math.floor(duration * fps);
+        if (frameNum > maxFrame) frameNum = maxFrame;
+        video.currentTime = frameNum / fps;
+        // Optionally, close popup after jump
+        // popupOverlay.style.display = "none";
+      }
+
+      if (jumpToFrameBtn && jumpToFrameInput) {
+        jumpToFrameBtn.addEventListener("click", () => {
           const val = Number(jumpToFrameInput.value);
           if (!isNaN(val) && val >= 0) {
             jumpToFrame(val);
           }
-        }
-      });
-    }
-
-    // Update jumpToFrameInput value to current frame when popup opens
-    function updateJumpToFrameInput() {
-      if (jumpToFrameInput) {
-        jumpToFrameInput.value = getCurrentFrameNumber();
+        });
+        jumpToFrameInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            const val = Number(jumpToFrameInput.value);
+            if (!isNaN(val) && val >= 0) {
+              jumpToFrame(val);
+            }
+          }
+        });
       }
-    }
 
-    // Seekbar
-    const seekbarContainer = document.getElementById("seekbarContainer");
-    const seekbar = document.getElementById("seekbar");
-    const currentTimeLabel = document.getElementById("currentTimeLabel");
-    const durationLabel = document.getElementById("durationLabel");
+      // Update jumpToFrameInput value to current frame when popup opens
+      function updateJumpToFrameInput() {
+        if (jumpToFrameInput) {
+          jumpToFrameInput.value = getCurrentFrameNumber();
+        }
+      }
 
-    let isSeeking = false;
+      // Seekbar
+      const seekbarContainer = document.getElementById("seekbarContainer");
+      const seekbar = document.getElementById("seekbar");
+      const currentTimeLabel = document.getElementById("currentTimeLabel");
+      const durationLabel = document.getElementById("durationLabel");
 
-    seekbar.addEventListener("input", (e) => {
-      isSeeking = true;
-      currentTimeLabel.textContent = formatTime(Number(seekbar.value));
-    });
+      let isSeeking = false;
 
-    seekbar.addEventListener("change", (e) => {
-      video.currentTime = Number(seekbar.value);
-      isSeeking = false;
-    });
-
-    seekbar.addEventListener("mousedown", () => {
-      showControls();
-    });
-
-    // Control Buttons
-    const controls = document.getElementById("controls");
-    const preVideoMenu = document.getElementById("preVideo");
-    const chooseVideoBtn = document.getElementById("chooseVideoBtn");
-    const installBtn = document.getElementById("installBtn");
-    const otherBtn = document.getElementById("other");
-    const back10Btn = document.getElementById("back10");
-    const prevFrameBtn = document.getElementById("prevFrame");
-    const playPauseBtn = document.getElementById("playPause");
-    const pauseIcon = document.getElementById("pauseIcon");
-    const playIcon = document.getElementById("playIcon");
-    const nextFrameBtn = document.getElementById("nextFrame");
-    const forward10Btn = document.getElementById("forward10");
-    const captureBtn = document.getElementById("captureFrame");
-
-    if (chooseVideoBtn) {
-      chooseVideoBtn.addEventListener("click", () => {
-        fileInput.value = "";
-        fileInput.click();
+      seekbar.addEventListener("input", (e) => {
+        isSeeking = true;
+        currentTimeLabel.textContent = formatTime(Number(seekbar.value));
       });
-    }
 
-    otherBtn.addEventListener("click", () => {
-      setFramerateInput();
-      updateJumpToFrameInput();
-      popupOverlay.style.display = "flex";
-      updatePopupFileUI();
-    });
+      seekbar.addEventListener("change", (e) => {
+        video.currentTime = Number(seekbar.value);
+        isSeeking = false;
+      });
 
-    back10Btn.onclick = () => {
-      video.currentTime -= 10;
-    };
+      seekbar.addEventListener("mousedown", () => {
+        showControls();
+      });
 
-    prevFrameBtn.onclick = () => {
-      video.pause();
-      video.currentTime -= 1 / fps;
-      updateJumpToFrameInput();
-    };
+      // Control Buttons
+      const controls = document.getElementById("controls");
+      const preVideoMenu = document.getElementById("preVideo");
+      const chooseVideoBtn = document.getElementById("chooseVideoBtn");
+      const installBtn = document.getElementById("installBtn");
+      const otherBtn = document.getElementById("other");
+      const back10Btn = document.getElementById("back10");
+      const prevFrameBtn = document.getElementById("prevFrame");
+      const playPauseBtn = document.getElementById("playPause");
+      const pauseIcon = document.getElementById("pauseIcon");
+      const playIcon = document.getElementById("playIcon");
+      const nextFrameBtn = document.getElementById("nextFrame");
+      const forward10Btn = document.getElementById("forward10");
+      const captureBtn = document.getElementById("captureFrame");
 
-    playPauseBtn.addEventListener("click", () => {
-      if (video.paused) {
-        video.play();
-      } else {
+      if (chooseVideoBtn) {
+        chooseVideoBtn.addEventListener("click", () => {
+          fileInput.value = "";
+          fileInput.click();
+        });
+      }
+
+      otherBtn.addEventListener("click", () => {
+        setFramerateInput();
+        updateJumpToFrameInput();
+        popupOverlay.style.display = "flex";
+        updatePopupFileUI();
+      });
+
+      back10Btn.onclick = () => {
+        video.currentTime -= 10;
+      };
+
+      prevFrameBtn.onclick = () => {
         video.pause();
-      }
-    });
+        video.currentTime -= 1 / fps;
+        updateJumpToFrameInput();
+      };
 
-    function updatePlayPauseIcon() {
-      if (video.paused) {
-        playIcon.classList.add("active");
-        pauseIcon.classList.remove("active");
-      } else {
-        pauseIcon.classList.add("active");
-        playIcon.classList.remove("active");
-      }
-    }
-
-    nextFrameBtn.onclick = () => {
-      video.pause();
-      video.currentTime += 1 / fps;
-      updateJumpToFrameInput();
-    };
-
-    forward10Btn.onclick = () => {
-      video.currentTime += 10;
-    };
-
-    let saveDirHandle = null;
-
-    async function requestSaveDirectory() {
-      if (!window.showDirectoryPicker) return null;
-      try {
-        const handle = await window.showDirectoryPicker({ startIn: "pictures" });
-        const perm = await handle.requestPermission({ mode: "readwrite" });
-        if (perm === "granted") {
-          saveDirHandle = handle;
-          return handle;
+      playPauseBtn.addEventListener("click", () => {
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
         }
-      } catch (_) { }
-      return null;
-    }
+      });
 
-    async function ensureSaveDirectory() {
-      if (saveDirHandle) {
-        const perm = await saveDirHandle.queryPermission({ mode: "readwrite" });
-        if (perm === "granted") return saveDirHandle;
+      function updatePlayPauseIcon() {
+        if (video.paused) {
+          playIcon.classList.add("active");
+          pauseIcon.classList.remove("active");
+        } else {
+          pauseIcon.classList.add("active");
+          playIcon.classList.remove("active");
+        }
       }
-      return await requestSaveDirectory();
-    }
 
-    async function saveBlobToDir(filename, blob) {
-      const dir = await ensureSaveDirectory();
-      if (!dir) return false;
-      const fileHandle = await dir.getFileHandle(filename, { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      return true;
-    }
+      nextFrameBtn.onclick = () => {
+        video.pause();
+        video.currentTime += 1 / fps;
+        updateJumpToFrameInput();
+      };
 
-    captureBtn.addEventListener("click", async () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      forward10Btn.onclick = () => {
+        video.currentTime += 10;
+      };
 
-      const frameNumber = Math.round(video.currentTime * fps);
-      const filename = `${baseFilename}-Frame${frameNumber.toString().padStart(3, "0")}-FrameSeeker.png`;
+      let saveDirHandle = null;
 
-      if (window.showDirectoryPicker) {
-        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-        const ok = await saveBlobToDir(filename, blob);
-        if (!ok) {
+      async function requestSaveDirectory() {
+        if (!window.showDirectoryPicker) return null;
+        try {
+          const handle = await window.showDirectoryPicker({ startIn: "pictures" });
+          const perm = await handle.requestPermission({ mode: "readwrite" });
+          if (perm === "granted") {
+            saveDirHandle = handle;
+            return handle;
+          }
+        } catch (_) {}
+        return null;
+      }
+
+      async function ensureSaveDirectory() {
+        if (saveDirHandle) {
+          const perm = await saveDirHandle.queryPermission({ mode: "readwrite" });
+          if (perm === "granted") return saveDirHandle;
+        }
+        return await requestSaveDirectory();
+      }
+
+      async function saveBlobToDir(filename, blob) {
+        const dir = await ensureSaveDirectory();
+        if (!dir) return false;
+        const fileHandle = await dir.getFileHandle(filename, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return true;
+      }
+
+      captureBtn.addEventListener("click", async () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const frameNumber = Math.round(video.currentTime * fps);
+        const filename = `${baseFilename}-Frame${frameNumber.toString().padStart(3, "0")}-FrameSeeker.png`;
+
+        if (window.showDirectoryPicker) {
+          const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+          const ok = await saveBlobToDir(filename, blob);
+          if (!ok) {
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+          }
+        } else {
           const link = document.createElement("a");
-          link.href = URL.createObjectURL(blob);
+          link.href = canvas.toDataURL("image/png");
           link.download = filename;
           link.click();
         }
-      } else {
-        const link = document.createElement("a");
-        link.href = canvas.toDataURL("image/png");
-        link.download = filename;
-        link.click();
-      }
-    });
+      });
 
-    function showControls() {
-      if (controls && seekbarContainer) {
-        controls.classList.remove("hidden");
-        seekbarContainer.classList.remove("hidden");
-        isControlsVisible = true;
-      }
-    }
-
-    function hideControls() {
-      if (controls && seekbarContainer) {
-        controls.classList.add("hidden");
-        seekbarContainer.classList.add("hidden");
-        isControlsVisible = false;
-      }
-    };
-
-    document.addEventListener("click", (e) => {
-      const isClickOnControls = controls.contains(e.target);
-      const isClickOnSeekbar = seekbarContainer.contains(e.target);
-      const isClickOnPopup = popupOverlay.contains(e.target);
-
-      if (!isClickOnControls && !isClickOnSeekbar && !isClickOnPopup) {
-        if (isControlsVisible) {
-          hideControls();
-        } else {
-          showControls();
+      function showControls() {
+        if (controls && seekbarContainer) {
+          controls.classList.remove("hidden");
+          seekbarContainer.classList.remove("hidden");
+          isControlsVisible = true;
         }
       }
-    });
 
-    window.addEventListener("focus", () => {
-      showControls();
-    });
-
-    // Other Elements
-    const video = document.getElementById("video");
-    const fileInput = document.getElementById("fileInput");
-
-    if (video.src === "" || video.style.display === "none") {
-      seekbarContainer.style.display = "none";
-    }
-
-    video.addEventListener("play", () => {
-      updatePlayPauseIcon();
-    });
-
-    video.addEventListener("pause", () => {
-      updatePlayPauseIcon();
-
-      showControls();
-    });
-    updatePlayPauseIcon();
-
-    video.addEventListener("timeupdate", () => {
-      if (!isNaN(video.duration)) {
-        seekbar.value = video.currentTime;
-        currentTimeLabel.textContent = formatTime(video.currentTime);
-        // If popup is open, update jumpToFrameInput to current frame
-        if (popupOverlay.style.display === "flex") {
-          updateJumpToFrameInput();
+      function hideControls() {
+        if (controls && seekbarContainer) {
+          controls.classList.add("hidden");
+          seekbarContainer.classList.add("hidden");
+          isControlsVisible = false;
         }
       }
-    });
 
-    video.addEventListener("click", () => { });
+      document.addEventListener("click", (e) => {
+        const isClickOnControls = controls.contains(e.target);
+        const isClickOnSeekbar = seekbarContainer.contains(e.target);
+        const isClickOnPopup = popupOverlay.contains(e.target);
 
-    video.addEventListener("loadedmetadata", () => {
-      const duration = video.duration;
-      const totalFrames = video.getVideoPlaybackQuality().totalVideoFrames;
-      console.log(video.getVideoPlaybackQuality());
-
-      console.log(`Duration: ${duration}`);
-      console.log(`Total Frames: ${totalFrames}`);
-
-      if (duration > 0 && totalFrames > 0) {
-        const averageFps = totalFrames / duration;
-        fps = averageFps;
-        setCookie("currentfps", fps, 365);
-      } else {
-        if (!getCookie("currentfps")) {
-          fps = 30;
-          setCookie("currentfps", fps, 365);
-        }
-      }
-      console.log(`FPS: ${fps}`);
-
-      seekbar.max = duration;
-      seekbar.value = 0;
-      durationLabel.textContent = formatTime(duration);
-      currentTimeLabel.textContent = formatTime(0);
-      seekbarContainer.style.display = "flex";
-      updateChooseVideoBtnVisibility();
-      updatePopupFileUI();
-      updateJumpToFrameInput();
-    });
-
-    video.addEventListener("emptied", () => {
-      updateChooseVideoBtnVisibility();
-      updatePopupFileUI();
-      updateJumpToFrameInput();
-    });
-
-    fileInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        loadVideo(file, file.name);
-      } else {
-        loadVideo(null, "");
-      }
-      updateJumpToFrameInput();
-    });
-
-    function formatTime(seconds) {
-      if (isNaN(seconds)) return "00:00";
-      const h = Math.floor(seconds / 3600);
-      const m = Math.floor((seconds % 3600) / 60);
-      const s = Math.floor(seconds % 60);
-      if (h > 0) {
-        return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-      } else {
-        return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-      }
-    }
-
-    function updatePopupFileUI() {
-      if (video.src && video.style.display !== "none") {
-        let name = baseFilename;
-        if (!name || name === "Video") {
-          name = "Video loaded";
-        }
-        popupFileText.textContent = "Video Loaded:";
-        popupFileName.textContent = name;
-      } else {
-        popupFileText.textContent = "Choose Video";
-        popupFileName.textContent = "";
-      }
-    }
-
-    function updateChooseVideoBtnVisibility() {
-      if (video.src && video.style.display !== "none") {
-        preVideoMenu.remove();
-      } else {
-        chooseVideoBtn.style.display = "flex";
-      }
-    }
-
-    function loadVideo(file, filename) {
-      if (file) {
-        baseFilename = filename.replace(/\.[^/.]+$/, "");
-        video.src = URL.createObjectURL(file);
-        video.style.display = "block";
-        seekbarContainer.style.display = "flex";
-      } else {
-        video.src = "";
-        video.style.display = "none";
-        seekbarContainer.style.display = "none";
-      }
-      updateChooseVideoBtnVisibility();
-      updatePopupFileUI();
-      updateJumpToFrameInput();
-    }
-
-    // Cookies
-
-    function setCookie(name, value, days) {
-      let expires = "";
-      if (days) {
-        const date = new Date();
-        date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-        expires = "; expires=" + date.toUTCString();
-      }
-      document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
-    }
-
-    function getCookie(name) {
-      const nameEQ = name + "=";
-      const ca = document.cookie.split(";");
-      for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === " ") c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
-      }
-      return null;
-    }
-
-    function loadFpsFromCookie() {
-      const cookieFps = getCookie("currentfps");
-      if (cookieFps && !isNaN(cookieFps)) {
-        fps = Number(cookieFps);
-      } else {
-        fps = 30;
-      }
-    }
-    loadFpsFromCookie();
-
-    // PWA
-
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js");
-    }
-
-    let deferredPrompt;
-    window.addEventListener("beforeinstallprompt", (e) => {
-      console.log("pwa not installed");
-      console.log(e);
-      deferredPrompt = e.preventDefault();
-      installBtn.style.display = "block";
-    });
-
-    async function installPWA() {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
-        console.log("pwa installed");
-      }
-      deferredPrompt = null;
-      installBtn.style.display = "none";
-      console.log("pwa installed");
-    }
-
-    window.addEventListener("load", () => {
-      const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
-      if (isStandalone) {
-        console.log("pwa standalone");
-        installBtn.style.display = "none";
-      }
-      if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
-        try {
-          navigator.serviceWorker.controller.postMessage({ type: "request-last-share" });
-        } catch (e) { }
-      }
-    });
-
-    window.addEventListener("DOMContentLoaded", () => {
-      setFramerateInput();
-      updateChooseVideoBtnVisibility();
-      updatePopupFileUI();
-      updateJumpToFrameInput();
-    });
-
-    if ("launchQueue" in window) {
-      launchQueue.setConsumer(async (launchParams) => {
-        if (!launchParams.files.length) return;
-        for (const handle of launchParams.files) {
-          const file = await handle.getFile();
-          loadVideo(file, file.name);
-          break;
+        if (!isClickOnControls && !isClickOnSeekbar && !isClickOnPopup) {
+          if (isControlsVisible) {
+            hideControls();
+          } else {
+            showControls();
+          }
         }
       });
-    }
 
-    async function handleShareRequest(request) {
-      try {
-        const data = await request.json();
-        if (data && data.type === "frame" && data.imageData) {
-          const filename = data.filename || "frame.png";
-          if (window.showDirectoryPicker) {
-            try {
-              const res = await fetch(data.imageData);
-              const blob = await res.blob();
-              const ok = await saveBlobToDir(filename, blob);
-              if (!ok) {
+      window.addEventListener("focus", () => {
+        showControls();
+      });
+
+      // Other Elements
+      const video = document.getElementById("video");
+      const fileInput = document.getElementById("fileInput");
+
+      if (video.src === "" || video.style.display === "none") {
+        seekbarContainer.style.display = "none";
+      }
+
+      video.addEventListener("play", () => {
+        updatePlayPauseIcon();
+      });
+
+      video.addEventListener("pause", () => {
+        updatePlayPauseIcon();
+
+        showControls();
+      });
+      updatePlayPauseIcon();
+
+      video.addEventListener("timeupdate", () => {
+        if (!isNaN(video.duration)) {
+          seekbar.value = video.currentTime;
+          currentTimeLabel.textContent = formatTime(video.currentTime);
+          // If popup is open, update jumpToFrameInput to current frame
+          if (popupOverlay.style.display === "flex") {
+            updateJumpToFrameInput();
+          }
+        }
+      });
+
+      video.addEventListener("click", () => {});
+
+      video.addEventListener("loadedmetadata", () => {
+        const duration = video.duration;
+        const totalFrames = video.getVideoPlaybackQuality().totalVideoFrames;
+        console.log(video.getVideoPlaybackQuality());
+
+        console.log(`Duration: ${duration}`);
+        console.log(`Total Frames: ${totalFrames}`);
+
+        if (duration > 0 && totalFrames > 0) {
+          const averageFps = totalFrames / duration;
+          fps = averageFps;
+          setCookie("currentfps", fps, 365);
+        } else {
+          if (!getCookie("currentfps")) {
+            fps = 30;
+            setCookie("currentfps", fps, 365);
+          }
+        }
+        console.log(`FPS: ${fps}`);
+
+        seekbar.max = duration;
+        seekbar.value = 0;
+        durationLabel.textContent = formatTime(duration);
+        currentTimeLabel.textContent = formatTime(0);
+        seekbarContainer.style.display = "flex";
+        updateChooseVideoBtnVisibility();
+        updatePopupFileUI();
+        updateJumpToFrameInput();
+      });
+
+      video.addEventListener("emptied", () => {
+        updateChooseVideoBtnVisibility();
+        updatePopupFileUI();
+        updateJumpToFrameInput();
+      });
+
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          loadVideo(file, file.name);
+        } else {
+          loadVideo(null, "");
+        }
+        updateJumpToFrameInput();
+      });
+
+      function formatTime(seconds) {
+        if (isNaN(seconds)) return "00:00";
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        if (h > 0) {
+          return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        } else {
+          return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        }
+      }
+
+      function updatePopupFileUI() {
+        if (video.src && video.style.display !== "none") {
+          let name = baseFilename;
+          if (!name || name === "Video") {
+            name = "Video loaded";
+          }
+          popupFileText.textContent = "Video Loaded:";
+          popupFileName.textContent = name;
+        } else {
+          popupFileText.textContent = "Choose Video";
+          popupFileName.textContent = "";
+        }
+      }
+
+      function updateChooseVideoBtnVisibility() {
+        if (video.src && video.style.display !== "none") {
+          preVideoMenu.remove();
+        } else {
+          chooseVideoBtn.style.display = "flex";
+        }
+      }
+
+      function loadVideo(file, filename) {
+        if (file) {
+          baseFilename = filename.replace(/\.[^/.]+$/, "");
+          video.src = URL.createObjectURL(file);
+          video.style.display = "block";
+          seekbarContainer.style.display = "flex";
+        } else {
+          video.src = "";
+          video.style.display = "none";
+          seekbarContainer.style.display = "none";
+        }
+        updateChooseVideoBtnVisibility();
+        updatePopupFileUI();
+        updateJumpToFrameInput();
+      }
+
+      // Cookies
+
+      function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+          const date = new Date();
+          date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+          expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
+      }
+
+      function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(";");
+        for (let i = 0; i < ca.length; i++) {
+          let c = ca[i];
+          while (c.charAt(0) === " ") c = c.substring(1, c.length);
+          if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+        }
+        return null;
+      }
+
+      function loadFpsFromCookie() {
+        const cookieFps = getCookie("currentfps");
+        if (cookieFps && !isNaN(cookieFps)) {
+          fps = Number(cookieFps);
+        } else {
+          fps = 30;
+        }
+      }
+      loadFpsFromCookie();
+
+      // PWA
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js");
+      }
+
+      let deferredPrompt;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        console.log("pwa not installed");
+        console.log(e);
+        deferredPrompt = e.preventDefault();
+        installBtn.style.display = "block";
+      });
+
+      async function installPWA() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          console.log("pwa installed");
+        }
+        deferredPrompt = null;
+        installBtn.style.display = "none";
+        console.log("pwa installed");
+      }
+
+      window.addEventListener("load", () => {
+        const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+        if (isStandalone) {
+          console.log("pwa standalone");
+          installBtn.style.display = "none";
+        }
+        if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+          try {
+            navigator.serviceWorker.controller.postMessage({ type: "request-last-share" });
+          } catch (e) {}
+        }
+      });
+
+      window.addEventListener("DOMContentLoaded", () => {
+        setFramerateInput();
+        updateChooseVideoBtnVisibility();
+        updatePopupFileUI();
+        updateJumpToFrameInput();
+      });
+
+      if ("launchQueue" in window) {
+        launchQueue.setConsumer(async (launchParams) => {
+          if (!launchParams.files.length) return;
+          for (const handle of launchParams.files) {
+            const file = await handle.getFile();
+            loadVideo(file, file.name);
+            break;
+          }
+        });
+      }
+
+      async function handleShareRequest(request) {
+        try {
+          const data = await request.json();
+          if (data && data.type === "frame" && data.imageData) {
+            const filename = data.filename || "frame.png";
+            if (window.showDirectoryPicker) {
+              try {
+                const res = await fetch(data.imageData);
+                const blob = await res.blob();
+                const ok = await saveBlobToDir(filename, blob);
+                if (!ok) {
+                  const a = document.createElement("a");
+                  a.href = data.imageData;
+                  a.download = filename;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                }
+              } catch (_) {
                 const a = document.createElement("a");
                 a.href = data.imageData;
                 a.download = filename;
@@ -942,7 +1043,7 @@
                 a.click();
                 document.body.removeChild(a);
               }
-            } catch (_) {
+            } else {
               const a = document.createElement("a");
               a.href = data.imageData;
               a.download = filename;
@@ -950,60 +1051,51 @@
               a.click();
               document.body.removeChild(a);
             }
+            return new Response(JSON.stringify({ status: "success" }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
           } else {
-            const a = document.createElement("a");
-            a.href = data.imageData;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            return new Response(JSON.stringify({ status: "error", message: "Invalid data" }), {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            });
           }
-          return new Response(JSON.stringify({ status: "success" }), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          });
-        } else {
-          return new Response(JSON.stringify({ status: "error", message: "Invalid data" }), {
-            status: 400,
+        } catch (e) {
+          return new Response(JSON.stringify({ status: "error", message: e.message }), {
+            status: 500,
             headers: { "Content-Type": "application/json" },
           });
         }
-      } catch (e) {
-        return new Response(JSON.stringify({ status: "error", message: e.message }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        });
       }
-    }
 
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.addEventListener("message", async (event) => {
-        if (event.data && event.data.type === "frameseeker-share") {
-          const payload = event.data.payload || {};
-          if (payload && payload.type === "frame") {
-            await handleShareRequest({ json: async () => payload });
-            return;
-          }
-          const files = payload.files || [];
-          if (Array.isArray(files) && files.length > 0) {
-            const file = files[0];
-            try {
-              const blobUrl = URL.createObjectURL(file);
-              baseFilename = file.name ? file.name.replace(/\.[^/.]+$/, "") : "Video";
-              video.src = blobUrl;
-              video.style.display = "block";
-              seekbarContainer.style.display = "flex";
-              updateChooseVideoBtnVisibility();
-              updatePopupFileUI();
-              updateJumpToFrameInput();
-            } catch (e) {
-              console.error("Failed to load shared video:", e);
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.addEventListener("message", async (event) => {
+          if (event.data && event.data.type === "frameseeker-share") {
+            const payload = event.data.payload || {};
+            if (payload && payload.type === "frame") {
+              await handleShareRequest({ json: async () => payload });
+              return;
+            }
+            const files = payload.files || [];
+            if (Array.isArray(files) && files.length > 0) {
+              const file = files[0];
+              try {
+                const blobUrl = URL.createObjectURL(file);
+                baseFilename = file.name ? file.name.replace(/\.[^/.]+$/, "") : "Video";
+                video.src = blobUrl;
+                video.style.display = "block";
+                seekbarContainer.style.display = "flex";
+                updateChooseVideoBtnVisibility();
+                updatePopupFileUI();
+                updateJumpToFrameInput();
+              } catch (e) {
+                console.error("Failed to load shared video:", e);
+              }
             }
           }
-        }
-      });
-    }
-  </script>
-</body>
-
+        });
+      }
+    </script>
+  </body>
 </html>
