@@ -269,6 +269,27 @@
         border: 1px solid #bbb;
         padding: 8px 16px;
         box-sizing: border-box;
+        -webkit-appearance: none;
+        -moz-appearance: textfield;
+        appearance: textfield;
+      }
+
+      #jumpToFrameInput[type="number"]::-webkit-inner-spin-button,
+      #jumpToFrameInput[type="number"]::-webkit-outer-spin-button,
+      #framerateSelect[type="number"]::-webkit-inner-spin-button,
+      #framerateSelect[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      #jumpToFrameInput[type="number"]::-moz-inner-spin-button,
+      #jumpToFrameInput[type="number"]::-moz-outer-spin-button,
+      #framerateSelect[type="number"]::-moz-inner-spin-button,
+      #framerateSelect[type="number"]::-moz-outer-spin-button {
+        -moz-appearance: textfield;
+      }
+      #jumpToFrameInput[type="number"],
+      #framerateSelect[type="number"] {
+        -moz-appearance: textfield;
       }
 
       #jumpToFrameBtn {
@@ -542,6 +563,19 @@
       const jumpToFrameInput = document.getElementById("jumpToFrameInput");
       const jumpToFrameBtn = document.getElementById("jumpToFrameBtn");
 
+      if (jumpToFrameInput) {
+        jumpToFrameInput.addEventListener("focus", function (e) {
+          setTimeout(() => {
+            if (document.activeElement === jumpToFrameInput) {
+              jumpToFrameInput.select();
+            }
+          }, 0);
+        });
+        jumpToFrameInput.addEventListener("mouseup", function (e) {
+          e.preventDefault();
+        });
+      }
+
       popupOverlay.addEventListener("click", (e) => {
         if (e.target === popupOverlay) {
           popupOverlay.style.display = "none";
@@ -563,7 +597,6 @@
         }
       });
 
-      // Helper to get current frame number
       function getCurrentFrameNumber() {
         if (!fps || isNaN(fps) || !video) return 0;
         return Math.round((video.currentTime || 0) * fps);
@@ -574,7 +607,6 @@
         if (frInput) {
           frInput.value = fps;
         }
-        // Set jumpToFrameInput to current frame number
         if (jumpToFrameInput) {
           jumpToFrameInput.value = getCurrentFrameNumber();
         }
@@ -582,14 +614,11 @@
 
       function jumpToFrame(frameNum) {
         if (!fps || isNaN(fps) || !video || isNaN(frameNum)) return;
-        // Clamp frameNum to valid range
         frameNum = Math.max(0, Math.floor(frameNum));
         const duration = video.duration || 0;
         const maxFrame = Math.floor(duration * fps);
         if (frameNum > maxFrame) frameNum = maxFrame;
         video.currentTime = frameNum / fps;
-        // Optionally, close popup after jump
-        // popupOverlay.style.display = "none";
       }
 
       if (jumpToFrameBtn && jumpToFrameInput) {
@@ -609,7 +638,6 @@
         });
       }
 
-      // Update jumpToFrameInput value to current frame when popup opens
       function updateJumpToFrameInput() {
         if (jumpToFrameInput) {
           jumpToFrameInput.value = getCurrentFrameNumber();
@@ -746,7 +774,7 @@
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         const frameNumber = Math.round(video.currentTime * fps);
-        const filename = `${baseFilename}-Frame${frameNumber.toString().padStart(3, "0")}-FrameSeeker.png`;
+        const filename = `${baseFilename}-Frame${frameNumber.toString().padStart(padLength, "0")}-FrameSeeker.png`;
 
         if (window.showDirectoryPicker) {
           const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
@@ -813,7 +841,6 @@
 
       video.addEventListener("pause", () => {
         updatePlayPauseIcon();
-
         showControls();
       });
       updatePlayPauseIcon();
@@ -822,15 +849,15 @@
         if (!isNaN(video.duration)) {
           seekbar.value = video.currentTime;
           currentTimeLabel.textContent = formatTime(video.currentTime);
-          // If popup is open, update jumpToFrameInput to current frame
           if (popupOverlay.style.display === "flex") {
             updateJumpToFrameInput();
           }
         }
       });
 
-      video.addEventListener("click", () => {});
+      // video.addEventListener("click", () => {});
 
+      let padLength = 3;
       video.addEventListener("loadedmetadata", () => {
         const duration = video.duration;
         const totalFrames = video.getVideoPlaybackQuality().totalVideoFrames;
@@ -856,6 +883,13 @@
         durationLabel.textContent = formatTime(duration);
         currentTimeLabel.textContent = formatTime(0);
         seekbarContainer.style.display = "flex";
+
+        if (fps && !isNaN(fps)) {
+          const maxFrame = Math.floor(duration * fps);
+          padLength = maxFrame.toString().length;
+          console.log(`Padding length set to ${padLength}`);
+        }
+
         updateChooseVideoBtnVisibility();
         updatePopupFileUI();
         updateJumpToFrameInput();
