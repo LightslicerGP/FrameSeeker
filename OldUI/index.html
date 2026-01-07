@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FrameSeeker</title>
+
+    <link rel="shortcut icon" type="image/png" href="Icons/FrameSeeker.png" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#0080ff" />
+    <meta name="description" content="A PWA (or possibly an actual app) that allows you to view and save frames of a video." />
+    <link rel="stylesheet" href="index.css" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  </head>
+  <body>
+    <div id="preVideo">
+      <div id="install-btn">Install PWA</div>
+
+      <div id="chooseVideoBtn" title="Choose Video" style="display: none">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000000"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-file-upload"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+          <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
+          <path d="M12 11v6" />
+          <path d="M9.5 13.5l2.5 -2.5l2.5 2.5" />
+        </svg>
+      </div>
+    </div>
+
+    <video id="video" style="display: none"></video>
+
+    <div id="popupOverlay">
+      <div id="popupContent">
+        <p>Select Framerate:</p>
+        <input type="number" id="framerateSelect" min="1" max="360" />
+        <div id="jumpToFrameContainer">
+          <input type="number" id="jumpToFrameInput" min="0" placeholder="Frame #" />
+          <button id="jumpToFrameBtn" type="button">Jump to Frame</button>
+        </div>
+        <label id="popupFileLabel" for="fileInput" style="display: flex">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-file-upload"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+            <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
+            <path d="M12 11v6" />
+            <path d="M9.5 13.5l2.5 -2.5l2.5 2.5" />
+          </svg>
+          <span id="popupFileText">Choose Video</span>
+          <span id="popupFileName"></span>
+        </label>
+        <input type="file" accept="video/mp4,video/webm,video/mov,video/x-matroska,video/mkv,video/*" id="fileInput" style="display: none" />
+        <button id="closePopupBtn" title="Close">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-circle-x"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+            <path d="M10 10l4 4m0 -4l-4 4" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="seekbarContainer" style="display: none">
+      <input type="range" id="seekbar" min="0" max="100" value="0" step="0.01" />
+      <div id="seekbarLabels">
+        <span id="currentTimeLabel">00:00</span>
+        <span id="durationLabel">00:00</span>
+      </div>
+    </div>
+
+    <div id="controls">
+      <div id="other">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000000"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-dots"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+          <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+          <path d="M19 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+        </svg>
+      </div>
+      <div id="center">
+        <div id="back10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-backward-10"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M7 9l-3 -3l3 -3" />
+            <path d="M15.997 17.918a6.002 6.002 0 0 0 -.997 -11.918h-11" />
+            <path d="M6 14v6" />
+            <path d="M9 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
+          </svg>
+        </div>
+        <div id="prevFrame">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-left-pipe"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M7 6v12" />
+            <path d="M18 6l-6 6l6 6" />
+          </svg>
+        </div>
+        <div id="playPause">
+          <svg
+            id="pauseIcon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="#000000"
+            class="icon icon-tabler icons-tabler-filled icon-tabler-player-pause active"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M9 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z" />
+            <path d="M17 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z" />
+          </svg>
+          <svg
+            id="playIcon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="#000000"
+            class="icon icon-tabler icons-tabler-filled icon-tabler-player-play"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z" />
+          </svg>
+        </div>
+        <div id="nextFrame">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-right-pipe"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M6 6l6 6l-6 6" />
+            <path d="M17 5v13" />
+          </svg>
+        </div>
+        <div id="forward10">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-rewind-forward-10"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M17 9l3 -3l-3 -3" />
+            <path d="M8 17.918a5.997 5.997 0 0 1 -5 -5.918a6 6 0 0 1 6 -6h11" />
+            <path d="M12 14v6" />
+            <path d="M15 15.5v3a1.5 1.5 0 0 0 3 0v-3a1.5 1.5 0 0 0 -3 0z" />
+          </svg>
+        </div>
+      </div>
+      <div id="captureFrame">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#000000"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-photo-scan"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M15 8h.01" />
+          <path d="M6 13l2.644 -2.644a1.21 1.21 0 0 1 1.712 0l3.644 3.644" />
+          <path d="M13 13l1.644 -1.644a1.21 1.21 0 0 1 1.712 0l1.644 1.644" />
+          <path d="M4 8v-2a2 2 0 0 1 2 -2h2" />
+          <path d="M4 16v2a2 2 0 0 0 2 2h2" />
+          <path d="M16 4h2a2 2 0 0 1 2 2v2" />
+          <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
+        </svg>
+      </div>
+    </div>
+
+    <script src="index.js"></script>
+    <script src="pwa.js"></script>
+    <script type="module">
+      import { squircleObserver } from "https://esm.sh/corner-smoothing";
+
+      window.applySquircles = function applySquircles() {
+        const allElements = document.querySelectorAll("*");
+        allElements.forEach((el) => {
+          const style = getComputedStyle(el);
+          const radius = parseFloat(style.borderRadius);
+          if (radius > 0) {
+            squircleObserver(el, {
+              cornerRadius: radius,
+              cornerSmoothing: 0.6,
+              style: {
+                fill: style.backgroundColor,
+              },
+            });
+          }
+        });
+      };
+
+      window.addEventListener("load", window.applySquircles);
+    </script>
+  </body>
+</html>

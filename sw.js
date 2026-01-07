@@ -1,64 +1,70 @@
-// This is the "Offline page" service worker
+const CACHE_NAME = "pwa-cache";
+const ASSETS = [
+    "/",
+    "/index.html",
+    "/index.css",
+    "/index.js",
+    "/pwa.js",
+    "/manifest.json"
+];
 
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/5.1.2/workbox-sw.js');
+self.addEventListener("install", event => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    );
+    self.skipWaiting();
+});
 
-const CACHE = "pwabuilder-page";
+self.addEventListener("activate", event => {
+    event.waitUntil(clients.claim());
+});
 
-const offlineFallbackPage = "index.html";
+self.addEventListener("fetch", (event) => {
+    const url = new URL(event.request.url);
 
+    // === SHARE TARGET FIRST ===
+    if (url.pathname.endsWith("videoIncoming")) {
+        if (event.request.method === "POST") {
+            event.respondWith(handleShare(event.request));
+            return;
+        }
+
+        if (event.request.method === "GET") {
+            const rootUrl = new URL("./", self.registration.scope).href;
+            event.respondWith(Response.redirect(rootUrl));
+            return;
+        }
+    }
+
+    // === NORMAL CACHE LOGIC ===
+    event.respondWith(
+        (async () => {
+            try {
+                const networkResponse = await fetch(event.request);
+                const cache = await caches.open(CACHE_NAME);
+                cache.put(event.request, networkResponse.clone());
+                return networkResponse;
+            } catch {
+                const cachedResponse = await caches.match(event.request);
+                if (cachedResponse) return cachedResponse;
+                if (event.request.mode === "navigate") {
+                    return caches.match("/index.html");
+                }
+                throw err;
+            }
+        })()
+    );
+});
+
+
+// Skip waiting message (optional)
 self.addEventListener("message", (event) => {
     if (event.data && event.data.type === "SKIP_WAITING") {
         self.skipWaiting();
     }
 });
 
-self.addEventListener("install", event => {
-    event.waitUntil(
-        caches.open(CACHE).then(cache => cache.add(offlineFallbackPage))
-    );
-    self.skipWaiting();
-});
-
-
-if (workbox.navigationPreload.isSupported()) {
-    workbox.navigationPreload.enable();
-}
-
-self.addEventListener("fetch", (event) => {
-    const url = new URL(event.request.url);
-
-    // Handle share target
-    const isShareTarget = url.pathname.endsWith("videoIncoming");
-    if (isShareTarget && event.request.method === "POST") {
-        event.respondWith(handleShare(event.request));
-        return;
-    }
-    if (isShareTarget && event.request.method === "GET" && event.request.destination === "document") {
-        const rootUrl = new URL("./", self.registration.scope).href;
-        event.respondWith(Response.redirect(rootUrl));
-        return;
-    }
-
-    // Handle offline navigation
-    if (event.request.mode === "navigate") {
-        event.respondWith((async () => {
-            try {
-                const preloadResp = await event.preloadResponse;
-                if (preloadResp) return preloadResp;
-
-                return await fetch(event.request);
-            } catch {
-                const cache = await caches.open(CACHE);
-                return await cache.match(offlineFallbackPage);
-            }
-        })());
-    }
-});
-
-self.addEventListener("activate", event => {
-    clients.claim();
-});
-
+// ===== Web Share Target =====
 let lastSharePayload = null;
 
 self.addEventListener('message', async (event) => {
@@ -71,6 +77,7 @@ self.addEventListener('message', async (event) => {
     }
 });
 
+// Share handler
 async function handleShare(request) {
     try {
         const formData = await request.formData();
@@ -79,7 +86,6 @@ async function handleShare(request) {
         const url = formData.get('url') || '';
 
         const files = [];
-        // Prefer the declared param name "video", but also collect any video/* files
         const declared = formData.getAll('video');
         for (const item of declared) {
             if (item && item instanceof File) files.push(item);
@@ -105,8 +111,10 @@ async function handleShare(request) {
             try { client.postMessage({ type: 'frameseeker-share', payload }); } catch (_) { }
         }
 
-        // Respond with a simple page; Android will show this after sharing
-        return new Response('<!doctype html><title>FrameSeeker</title><meta name="viewport" content="width=device-width, initial-scale=1" /><body style="font-family: system-ui, sans-serif; padding: 24px;">Shared to FrameSeeker. You can close this tab.</body>', { headers: { 'Content-Type': 'text/html' } });
+        return new Response(
+            '<!doctype html><title>FrameSeeker</title><meta name="viewport" content="width=device-width, initial-scale=1" /><body style="font-family: system-ui, sans-serif; padding: 24px;">Shared to FrameSeeker. You can close this tab.</body>',
+            { headers: { 'Content-Type': 'text/html' } }
+        );
     } catch (err) {
         return new Response('Failed to handle share: ' + (err && err.message ? err.message : String(err)), { status: 500 });
     }

@@ -1,0 +1,266 @@
+@font-face {
+  font-family: "San Fransisco";
+  src: url("Fonts/SF-Pro-Display-Regular.otf");
+}
+@font-face {
+  font-family: "San Fransisco Mono";
+  src: url("Fonts/SFMono-Regular.otf");
+}
+
+* {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  /* font-family: inter, monospace; */
+  /* font-family: monospace; */
+  font-family: "San Fransisco", inter;
+  color: #ffffff;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hidden {
+  opacity: 0;
+}
+
+body {
+  background: #000000;
+  overflow: hidden;
+}
+
+#video-blur {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+  filter: blur(64px);
+  transform: scale(1.5);
+}
+
+#video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  z-index: 0;
+}
+
+svg {
+  width: 32px;
+  height: 32px;
+  stroke: #ffffff;
+}
+
+.glassy {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(16px);
+  transition: background 0.1s ease-in-out;
+}
+
+.glassy:active {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px;
+  border-radius: 32px;
+  border: none;
+}
+
+.button.medium,
+.button.large {
+  padding: 12px;
+  border-radius: 64px;
+}
+
+.button.medium > svg {
+  width: 48px;
+  height: 48px;
+}
+
+.button.large > svg {
+  width: 80px;
+  height: 80px;
+}
+
+#controls {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: calc(100vh - 64px);
+  position: relative;
+  z-index: 100;
+  transition: opacity 0.25s ease-in-out, blur 0.25s ease-in-out;
+}
+
+#controls > #top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+#controls > #top > .left {
+  display: flex;
+  align-items: center;
+  /* gap: 12px; */
+  /* transition: opacity 0.25s ease-in-out; */
+}
+
+#topLeftButtons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#controls > #top > .right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+#playbackControls {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  z-index: 1000;
+  transition: opacity 0.25s ease-in-out, blur 0.25s ease-in-out;
+}
+
+#playbackControls.hidden {
+  opacity: 0;
+  filter: blur(0px);
+  pointer-events: none;
+}
+
+#controls.hidden {
+  opacity: 0;
+  filter: blur(0px);
+  pointer-events: none;
+}
+
+#controls > #bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#controls > #bottom > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#controls > #bottom > div > .left,
+#controls > #bottom > div > .right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.seekbar {
+  width: calc(100% - 32px);
+  padding: 12px 16px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.seekbar span {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  font-family: "San Fransisco Mono", monospace;
+}
+
+#seekbarSlider {
+  flex: 1;
+  height: 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.25);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#seekbarSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+#seekbarSlider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.1s ease;
+}
+
+#seekbarSlider::-webkit-slider-runnable-track {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+}
+
+#seekbarSlider::-moz-range-track {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+}
+
+#popupOverlay {
+  display: none;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  white-space: nowrap;
+  padding: 8px;
+}
+
+#popupOverlay.active {
+  display: flex;
+}
+
+#popupLabel {
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+#popupValue {
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.3);
+  padding: 8px 0px;
+  font-size: 24px;
+  text-align: center;
+  width: 128px;
+  border-radius: 16px;
+  font-family: "San Fransisco Mono", monospace;
+}
+
+#popupValue:focus {
+  outline: none;
+}
