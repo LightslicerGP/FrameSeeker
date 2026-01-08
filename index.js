@@ -306,56 +306,54 @@ async function saveBlobToDir(filename, blob) {
 
 saveFrameBtn.addEventListener('click', async function (e) {
     e.stopPropagation();
+
     if (!video || !video.videoWidth || !video.videoHeight) return;
 
-    // 1. Prepare the blob
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const filename = getCaptureFileName(); // Ensure this function is defined
-    const blob = await new Promise(r => canvas.toBlob(r, 'image/png', 1.0));
-    const file = new File([blob], filename, { type: "image/png" });
+    const filename = getCaptureFileName();
 
-    // 2. CHECK: Are we on Mobile? -> Use Share API
-    // (Navigator.canShare is the most reliable check for this capability)
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-            await navigator.share({
-                files: [file],
-                title: filename,
-                text: 'Frame captured from FrameSeeker'
-            });
-            return; // Success! Android handles the saving now.
-        } catch (err) {
-            console.log("Share cancelled/failed, falling back to download.");
+    if (window.showDirectoryPicker) {
+        const blob = await new Promise(resolve => {
+            canvas.toBlob(resolve, 'image/png', 1.0);
+        });
+        if (!blob) return;
+        const saved = await saveBlobToDir(filename, blob);
+        if (!saved) {
+            // fallback to download if user cancels or permission fails
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
         }
+    } else {
+        // fallback, just download
+        canvas.toBlob(function (blob) {
+            if (!blob) return;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        }, 'image/png', 1.0);
     }
-
-    // 3. CHECK: Are we on Desktop? -> Use Directory Picker
-    // We strictly check for 'showDirectoryPicker' AND likely desktop environment
-    // because Android has the API but fails the permission, as you found out.
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-    if (window.showDirectoryPicker && !isMobile) {
-        try {
-            const saved = await saveBlobToDir(filename, blob);
-            if (saved) return;
-        } catch (e) {
-            console.warn("Directory Picker failed:", e);
-        }
-    }
-
-    // 4. FALLBACK: Normal Download
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
 });
 
 // ==================
