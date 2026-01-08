@@ -198,66 +198,109 @@ function getCaptureFileName() {
 // ---- Directory picker helpers for saving image if supported ----
 
 async function requestSaveDirectory() {
+    console.log("==== [requestSaveDirectory] ====");
     if (!window.showDirectoryPicker) {
         console.error("showDirectoryPicker is not available in this environment.");
+        console.log("Cannot use directory picker! Returning null.");
         return null;
     }
     try {
+        console.log("Calling showDirectoryPicker... (user should see a picker now)");
         const handle = await window.showDirectoryPicker({ startIn: "pictures" });
+        console.log("Got directory handle:", handle);
+
+        console.log("Requesting readwrite permissions for chosen directory...");
         const perm = await handle.requestPermission({ mode: "readwrite" });
+        console.log("Permission result:", perm);
+
         if (perm === "granted") {
+            console.log("Permission granted! Storing handle in saveDirHandle and returning handle...");
             saveDirHandle = handle;
             return handle;
         } else {
             console.error("Permission to write to directory was not granted.");
+            console.log("Permission was:", perm, "Returning null.");
         }
     } catch (e) {
         // user may cancel
         console.error("Error while requesting directory:", e);
+        console.log("Directory picker threw an error, possibly user cancellation.");
     }
+    console.log("Returning null, could not obtain directory handle.");
     return null;
 }
 
 async function ensureSaveDirectory() {
+    console.log("==== [ensureSaveDirectory] ====");
     if (saveDirHandle) {
+        console.log("saveDirHandle already exists:", saveDirHandle);
         try {
+            console.log("Querying permission for saveDirHandle...");
             const perm = await saveDirHandle.queryPermission({ mode: "readwrite" });
+            console.log("Permission for saveDirHandle is:", perm);
             if (perm === "granted") {
+                console.log("Permission granted for existing saveDirHandle! Returning saveDirHandle.");
                 return saveDirHandle;
             } else {
                 console.error("Permission for existing saveDirHandle was not granted.");
+                console.log("Permission for handle was:", perm, "Will fall through to request a new handle.");
             }
         } catch (e) {
             console.error("Error querying permission for saveDirHandle:", e);
+            console.log("Exception thrown when checking permission on saveDirHandle, will request new one.");
         }
+    } else {
+        console.log("No saveDirHandle exists yet.");
     }
     // No valid handle, so we request one
-    return await requestSaveDirectory();
+    console.log("Requesting new save directory...");
+    const result = await requestSaveDirectory();
+    if (result) {
+        console.log("New save directory obtained!", result);
+    } else {
+        console.log("Failed to get a new save directory.");
+    }
+    return result;
 }
 
 async function saveBlobToDir(filename, blob) {
+    console.log("==== [saveBlobToDir] ====");
+    console.log("Filename to save:", filename);
+    console.log("Blob info:", blob);
     const dir = await ensureSaveDirectory();
     if (!dir) {
         console.error("Failed to obtain save directory (user may have cancelled or permission denied).");
+        console.log("Aborting saveBlobToDir due to missing directory.");
         return false;
     }
     try {
+        console.log("Calling getFileHandle for:", filename);
         const fileHandle = await dir.getFileHandle(filename, { create: true });
         if (!fileHandle) {
             console.error("Failed to get file handle for", filename);
+            console.log("File handle is falsy, aborting save.");
             return false;
         }
+        console.log("File handle obtained:", fileHandle);
+
+        console.log("Creating writable stream for file...");
         const writable = await fileHandle.createWritable();
         if (!writable) {
             console.error("Failed to create writable stream for", filename);
+            console.log("Writable stream is falsy, aborting save.");
             return false;
         }
+        console.log("Writable stream obtained! Attempting to write blob...");
         await writable.write(blob);
+        console.log("Write to file successful! Closing writable stream...");
         await writable.close();
+        console.log("Writable stream closed. Save process complete.");
         return true;
     } catch (e) {
         console.error("Error saving blob to directory:", e);
+        console.log("Exception occurred while saving blob to", filename);
     }
+    console.log("Returning false from saveBlobToDir because of an error.");
     return false;
 }
 
