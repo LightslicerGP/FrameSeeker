@@ -837,22 +837,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 function loadVideoFile(file) {
+    console.log("Loading file:", file.name, "Type:", file.type, "Size:", file.size);
+
     const url = URL.createObjectURL(file);
 
     video.dataset.name = file.name;
     video.dataset.lastModified = file.lastModified;
 
     video.src = url;
+    video.load(); // Force the video element to acknowledge the new source
     video.currentTime = 0;
 
+    // Save state
     localStorage.setItem('videoState', JSON.stringify({
         currentTime: 0,
         name: file.name,
         lastModified: file.lastModified
     }));
 
-    updatePlayPauseIcon();
-    updateChooseVideoBtnVisibility();
-    updatePopupFileUI();
-    updateJumpToFrameInput();
+    // Update Play/Pause Icon safely
+    if (typeof updatePlayPauseIcon === "function") {
+        updatePlayPauseIcon();
+    }
+
+    // --- SAFE FUNCTION CALLS (Prevents Crash) ---
+
+    if (typeof updateChooseVideoBtnVisibility === "function") {
+        updateChooseVideoBtnVisibility();
+    } else {
+        console.warn("updateChooseVideoBtnVisibility is missing");
+        // Fallback: Manually hide the button if it exists
+        if (chooseVideoBtn) chooseVideoBtn.style.display = 'none';
+    }
+
+    if (typeof updatePopupFileUI === "function") {
+        updatePopupFileUI();
+    }
+
+    if (typeof updateJumpToFrameInput === "function") {
+        updateJumpToFrameInput();
+    }
 }

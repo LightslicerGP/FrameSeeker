@@ -40,10 +40,10 @@ if ("serviceWorker" in navigator) {
 window.addEventListener("DOMContentLoaded", async () => {
     // 1. Check if we were redirected here by the Service Worker
     const urlParams = new URLSearchParams(window.location.search);
-    
+
     if (urlParams.has('share_target')) {
         console.log("Detecting Share Target redirect...");
-        
+
         // Remove the query param so refresh doesn't trigger it again
         const newUrl = window.location.pathname;
         window.history.replaceState({}, document.title, newUrl);
@@ -55,23 +55,24 @@ window.addEventListener("DOMContentLoaded", async () => {
 
             if (response) {
                 console.log("Found shared file in cache!");
-                
+
                 // Convert the response to a Blob
                 const blob = await response.blob();
-                
+
                 // Use the Response constructor to parse the multipart data
                 // This works because 'response.headers' contains the correct Boundary
                 const multipartResponse = new Response(blob, {
                     headers: response.headers
                 });
-                
+
                 const formData = await multipartResponse.formData();
-                
-                // Retrieve the file (name 'files' must match manifest.json)
-                const file = formData.get('files'); // or formData.getAll('files')[0]
+
+                // Retrieve the file
+                const file = formData.get('files');
 
                 if (file) {
-                    console.log("File extracted:", file.name);
+                    console.log("PWA extracted file:", file);
+
                     if (typeof loadVideoFile === "function") {
                         loadVideoFile(file);
                     } else {
@@ -87,9 +88,9 @@ window.addEventListener("DOMContentLoaded", async () => {
             // Optional: alert("Error loading shared video: " + err.message);
         }
     }
-    
+
     // Regular initializers
-    if(typeof updateChooseVideoBtnVisibility === 'function') updateChooseVideoBtnVisibility();
+    if (typeof updateChooseVideoBtnVisibility === 'function') updateChooseVideoBtnVisibility();
 });
 
 // Handle standard Launch Queue (Windows/Desktop)
