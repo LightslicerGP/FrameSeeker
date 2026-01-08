@@ -35,63 +35,108 @@ if ("serviceWorker" in navigator) {
 }
 
 // ==========================================
-// 2. CHECK FOR SHARED FILES (CACHE METHOD)
+// 2. CHECK FOR SHARED FILES (ROBUST SLICE METHOD)
 // ==========================================
 window.addEventListener("DOMContentLoaded", async () => {
-    // 1. Check if we were redirected here by the Service Worker
     const urlParams = new URLSearchParams(window.location.search);
 
     if (urlParams.has('share_target')) {
         console.log("Detecting Share Target redirect...");
 
-        // Remove the query param so refresh doesn't trigger it again
+        // Clean URL
         const newUrl = window.location.pathname;
         window.history.replaceState({}, document.title, newUrl);
 
         try {
-            // Open the specific cache we used in sw.js
             const cache = await caches.open('share-target-buffer');
             const response = await cache.match('/video-share-temp');
 
             if (response) {
                 console.log("Found shared file in cache!");
-
-                // Convert the response to a Blob
                 const blob = await response.blob();
+                const contentType = response.headers.get('Content-Type') || '';
 
-                // Use the Response constructor to parse the multipart data
-                // This works because 'response.headers' contains the correct Boundary
-                const multipartResponse = new Response(blob, {
-                    headers: response.headers
-                });
-
-                const formData = await multipartResponse.formData();
-
-                // Retrieve the file
-                const file = formData.get('files');
+                // Try to extract the file using our memory-safe parser
+                const file = await parseMultipartFile(blob, contentType);
 
                 if (file) {
-                    console.log("PWA extracted file:", file);
-
+                    console.log("File extracted safely:", file.name);
                     if (typeof loadVideoFile === "function") {
                         loadVideoFile(file);
                     } else {
                         console.error("loadVideoFile function missing");
                     }
+                } else {
+                    console.error("Failed to parse multipart data.");
                 }
 
-                // Cleanup: Delete the temp file from cache
+                // Cleanup
                 await cache.delete('/video-share-temp');
             }
         } catch (err) {
-            console.error("Error reading shared file from cache:", err);
-            // Optional: alert("Error loading shared video: " + err.message);
+            console.error("Error reading shared file:", err);
         }
     }
 
     // Regular initializers
     if (typeof updateChooseVideoBtnVisibility === 'function') updateChooseVideoBtnVisibility();
 });
+
+// ==========================================
+// HELPER: Memory-Safe Multipart Parser
+// ==========================================
+async function parseMultipartFile(blob, contentType) {
+    try {
+        // 1. Get the boundary string from headers
+        const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+        if (!boundaryMatch) {
+            console.error("No boundary found in Content-Type");
+            return null;
+        }
+        const boundary = boundaryMatch[1] || boundaryMatch[2];
+
+        // 2. Read just the start of the file (header section) to find metadata
+        // We only read the first 10KB, which is enough for headers.
+        const headerChunk = blob.slice(0, 1024 * 10);
+        const text = await headerChunk.text();
+
+        // 3. Find where the file data actually starts
+        // Look for the filename to ensure we are looking at the file part
+        const filePartIndex = text.indexOf('filename="');
+        if (filePartIndex === -1) return null;
+
+        // Find the end of the headers (double newline)
+        // We search starting from the filename position to ensure we get the right section
+        const headerEndIndex = text.indexOf('\r\n\r\n', filePartIndex);
+        if (headerEndIndex === -1) return null;
+
+        // The data starts after the double newline (4 bytes)
+        const dataStartIndex = headerEndIndex + 4;
+
+        // 4. Calculate where the data ends
+        // The file ends at the final boundary.
+        // Approx: Total Size - (Boundary Length + Extra dashes/newlines)
+        // We can safely shave off ~100 bytes from the end to remove the footer.
+        // Precise calculation:
+        const footerLength = boundary.length + 8; // --boundary--\r\n approx
+        const dataEndIndex = blob.size - footerLength;
+
+        // 5. Slice the Blob! (This is instant and uses no RAM)
+        const videoBlob = blob.slice(dataStartIndex, dataEndIndex, "video/mp4");
+
+        // 6. Create a File object (Fake name, or extract real name if you want)
+        // We can extract the real name from the 'text' variable if needed.
+        let filename = "shared-video.mp4";
+        const nameMatch = text.match(/filename="([^"]+)"/);
+        if (nameMatch) filename = nameMatch[1];
+
+        return new File([videoBlob], filename, { type: "video/mp4" });
+
+    } catch (e) {
+        console.error("Manual parse failed:", e);
+        return null;
+    }
+}
 
 // Handle standard Launch Queue (Windows/Desktop)
 if ("launchQueue" in window) {
