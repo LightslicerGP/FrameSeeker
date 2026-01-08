@@ -654,8 +654,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---- Resume Prompt after load
     if (!blurLayer || !video) return;
 
+    const isShareTarget = new URLSearchParams(window.location.search).has('share_target');
+
     const savedState = JSON.parse(localStorage.getItem('videoState') || '{}');
-    if (savedState && savedState.name) {
+
+    if (savedState && savedState.name && !isShareTarget) {
         const resumeDiv = document.createElement('div');
         resumeDiv.className = 'glassy';
         resumeDiv.id = 'resumePrompt';
