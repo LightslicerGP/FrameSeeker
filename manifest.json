@@ -469,6 +469,17 @@
       }
     }
   },
+  "file_handlers": [
+    {
+      "action": "./",
+      "accept": {
+        "video/mp4": [".mp4", ".m4v"],
+        "video/x-matroska": [".mkv"],
+        "video/webm": [".webm"],
+        "video/quicktime": [".mov"]
+      }
+    }
+  ],
   "short_name": "FrameSeeker",
   "start_url": "./",
   "theme_color": "#0080ff"
