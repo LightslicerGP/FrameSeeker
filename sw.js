@@ -20,29 +20,26 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("fetch", (event) => {
-    const url = new URL(event.request.url);
 
     // === SHARE TARGET ===
-    if (url.pathname.startsWith("/videoIncoming")) {
-        if (event.request.method === "POST") {
-            event.respondWith((async () => {
-                try {
-                    return await handleShare(event.request);
-                } catch (err) {
-                    return new Response("Share failed", { status: 500 });
-                }
-            })());
-            return;
-        }
+    if (event.request.method !== "GET" && event.request.method !== "POST") return;
 
-        event.respondWith(Response.redirect("./", 303));
+    const url = new URL(event.request.url);
+
+    if (url.pathname.startsWith("/videoIncoming")) {
+        event.respondWith(handleShare(event.request));
         return;
     }
+
+    if (event.request.method !== "GET") return;
 
     // === NORMAL CACHE LOGIC ===
     event.respondWith(
         (async () => {
             try {
+                if (event.request.method !== "GET") {
+                    return;
+                }
                 const networkResponse = await fetch(event.request);
                 const cache = await caches.open(CACHE_NAME);
                 cache.put(event.request, networkResponse.clone());
@@ -84,21 +81,16 @@ self.addEventListener('message', async (event) => {
 // Share handler
 async function handleShare(request) {
     try {
-        const formData = await request.formData();
+        const cloned = request.clone();
+        const formData = await cloned.formData();
         const title = formData.get('title') || '';
         const text = formData.get('text') || '';
         const url = formData.get('url') || '';
 
         const files = [];
-        const declared = formData.getAll('video');
-        for (const item of declared) {
-            if (item && item instanceof File) files.push(item);
-        }
-        if (files.length === 0) {
-            for (const [key, value] of formData.entries()) {
-                if (value instanceof File && value.type && value.type.startsWith('video/')) {
-                    files.push(value);
-                }
+        for (const value of formData.values()) {
+            if (value instanceof File && value.type.startsWith("video/")) {
+                files.push(value);
             }
         }
 
@@ -106,18 +98,21 @@ async function handleShare(request) {
         lastSharePayload = payload;
 
         const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-        let client = clientList && clientList.length ? clientList[0] : null;
+        let client = clientList[0];
+
         if (!client) {
-            const rootUrl = new URL('./', self.registration.scope).href;
-            client = await clients.openWindow(rootUrl);
-        }
-        if (client) {
-            try { client.postMessage({ type: 'frameseeker-share', payload }); } catch (_) { }
+            client = await clients.openWindow("./");
         }
 
+        client?.postMessage({ type: 'frameseeker-share', payload });
+
+        // ALWAYS redirect after share
         return Response.redirect("./", 303);
-
     } catch (err) {
-        return new Response('Failed to handle share: ' + (err && err.message ? err.message : String(err)), { status: 500 });
+        console.error("Share handler crash:", err);
+        return new Response(
+            "Failed to handle share: " + err.message,
+            { status: 500 }
+        );
     }
 }
