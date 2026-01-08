@@ -224,7 +224,10 @@ async function ensureSaveDirectory() {
 
 async function saveBlobToDir(filename, blob) {
     const dir = await ensureSaveDirectory();
-    if (!dir) return false;
+    if (!dir) {
+        console.error("Failed to obtain save directory (user may have cancelled or permission denied).");
+        return false;
+    }
     try {
         const fileHandle = await dir.getFileHandle(filename, { create: true });
         const writable = await fileHandle.createWritable();
@@ -232,63 +235,62 @@ async function saveBlobToDir(filename, blob) {
         await writable.close();
         return true;
     } catch (e) {
-        // Permission denied or user cancelled
+        console.error(e);
     }
     return false;
 }
 
-if (saveFrameBtn) {
-    saveFrameBtn.addEventListener('click', async function (e) {
-        e.stopPropagation();
+saveFrameBtn.addEventListener('click', async function (e) {
+    e.stopPropagation();
 
-        if (!video || !video.videoWidth || !video.videoHeight) return;
+    if (!video || !video.videoWidth || !video.videoHeight) return;
 
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        const filename = getCaptureFileName();
+    const filename = getCaptureFileName();
 
+    if (window.showDirectoryPicker) {
         const blob = await new Promise(resolve => {
             canvas.toBlob(resolve, 'image/png', 1.0);
         });
         if (!blob) return;
-
-        const file = new File([blob], filename, { type: "image/png" });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
-                await navigator.share({
-                    files: [file],
-                    title: filename,
-                    text: 'Frame captured from FrameSeeker'
-                });
-                return;
-            } catch (err) {
-                console.log("Share failed or cancelled:", err);
-            }
+        const saved = await saveBlobToDir(filename, blob);
+        if (!saved) {
+            // fallback to download if user cancels or permission fails
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
         }
-
-        if (window.showDirectoryPicker) {
-            const saved = await saveBlobToDir(filename, blob);
-            if (saved) return;
-        }
-
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-
-        setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }, 100);
-    });
-}
+    } else {
+        // fallback, just download
+        canvas.toBlob(function (blob) {
+            if (!blob) return;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        }, 'image/png', 1.0);
+    }
+});
 
 // ==================
 // SVG Icon Constants
