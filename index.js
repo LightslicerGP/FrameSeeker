@@ -251,47 +251,44 @@ if (saveFrameBtn) {
 
         const filename = getCaptureFileName();
 
-        if (window.showDirectoryPicker) {
-            // Advanced: offer directory picker
-            const blob = await new Promise(resolve => {
-                canvas.toBlob(resolve, 'image/png', 1.0);
-            });
-            if (!blob) return;
-            const saved = await saveBlobToDir(filename, blob);
-            if (!saved) {
-                // fallback to download if user cancels or permission fails
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 100);
+        const blob = await new Promise(resolve => {
+            canvas.toBlob(resolve, 'image/png', 1.0);
+        });
+        if (!blob) return;
+
+        const file = new File([blob], filename, { type: "image/png" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    files: [file],
+                    title: filename,
+                    text: 'Frame captured from FrameSeeker'
+                });
+                return;
+            } catch (err) {
+                console.log("Share failed or cancelled:", err);
             }
-        } else {
-            // fallback, just download
-            canvas.toBlob(function (blob) {
-                if (!blob) return;
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 100);
-            }, 'image/png', 1.0);
         }
+
+        if (window.showDirectoryPicker) {
+            const saved = await saveBlobToDir(filename, blob);
+            if (saved) return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 100);
     });
 }
-
 // ==================
 // SVG Icon Constants
 // ==================
