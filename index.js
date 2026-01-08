@@ -198,16 +198,22 @@ function getCaptureFileName() {
 // ---- Directory picker helpers for saving image if supported ----
 
 async function requestSaveDirectory() {
-    if (!window.showDirectoryPicker) return null;
+    if (!window.showDirectoryPicker) {
+        console.error("showDirectoryPicker is not available in this environment.");
+        return null;
+    }
     try {
         const handle = await window.showDirectoryPicker({ startIn: "pictures" });
         const perm = await handle.requestPermission({ mode: "readwrite" });
         if (perm === "granted") {
             saveDirHandle = handle;
             return handle;
+        } else {
+            console.error("Permission to write to directory was not granted.");
         }
     } catch (e) {
         // user may cancel
+        console.error("Error while requesting directory:", e);
     }
     return null;
 }
@@ -216,9 +222,16 @@ async function ensureSaveDirectory() {
     if (saveDirHandle) {
         try {
             const perm = await saveDirHandle.queryPermission({ mode: "readwrite" });
-            if (perm === "granted") return saveDirHandle;
-        } catch (e) { }
+            if (perm === "granted") {
+                return saveDirHandle;
+            } else {
+                console.error("Permission for existing saveDirHandle was not granted.");
+            }
+        } catch (e) {
+            console.error("Error querying permission for saveDirHandle:", e);
+        }
     }
+    // No valid handle, so we request one
     return await requestSaveDirectory();
 }
 
@@ -230,12 +243,20 @@ async function saveBlobToDir(filename, blob) {
     }
     try {
         const fileHandle = await dir.getFileHandle(filename, { create: true });
+        if (!fileHandle) {
+            console.error("Failed to get file handle for", filename);
+            return false;
+        }
         const writable = await fileHandle.createWritable();
+        if (!writable) {
+            console.error("Failed to create writable stream for", filename);
+            return false;
+        }
         await writable.write(blob);
         await writable.close();
         return true;
     } catch (e) {
-        console.error(e);
+        console.error("Error saving blob to directory:", e);
     }
     return false;
 }
