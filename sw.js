@@ -22,18 +22,21 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", (event) => {
     const url = new URL(event.request.url);
 
-    // === SHARE TARGET FIRST ===
-    if (url.pathname.endsWith("videoIncoming")) {
+    // === SHARE TARGET ===
+    if (url.pathname.startsWith("/videoIncoming")) {
         if (event.request.method === "POST") {
-            event.respondWith(handleShare(event.request));
+            event.respondWith((async () => {
+                try {
+                    return await handleShare(event.request);
+                } catch (err) {
+                    return new Response("Share failed", { status: 500 });
+                }
+            })());
             return;
         }
 
-        if (event.request.method === "GET") {
-            const rootUrl = new URL("./", self.registration.scope).href;
-            event.respondWith(Response.redirect(rootUrl));
-            return;
-        }
+        event.respondWith(Response.redirect("./", 303));
+        return;
     }
 
     // === NORMAL CACHE LOGIC ===
@@ -55,6 +58,7 @@ self.addEventListener("fetch", (event) => {
         })()
     );
 });
+
 
 
 // Skip waiting message (optional)
@@ -111,10 +115,8 @@ async function handleShare(request) {
             try { client.postMessage({ type: 'frameseeker-share', payload }); } catch (_) { }
         }
 
-        return new Response(
-            '<!doctype html><title>FrameSeeker</title><meta name="viewport" content="width=device-width, initial-scale=1" /><body style="font-family: system-ui, sans-serif; padding: 24px;">Shared to FrameSeeker. You can close this tab.</body>',
-            { headers: { 'Content-Type': 'text/html' } }
-        );
+        return Response.redirect("./", 303);
+
     } catch (err) {
         return new Response('Failed to handle share: ' + (err && err.message ? err.message : String(err)), { status: 500 });
     }
