@@ -117,29 +117,25 @@ async function handleShareRequest(request) {
 
 // Listen to messages from service worker (share-target)
 if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.addEventListener("message", async (event) => {
-        if (event.data && event.data.type === "frameseeker-share") {
-            const payload = event.data.payload || {};
-
-            if (payload && payload.type === "frame") {
-                await handleShareRequest({ json: async () => payload });
-                return;
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.ready.then((registration) => {
+            if (registration.active) {
+                registration.active.postMessage({ type: 'request-last-share' });
             }
+        });
+    });
 
-            const files = payload.files || [];
-            if (Array.isArray(files) && files.length > 0) {
-                const file = files[0];
-                try {
-                    const blobUrl = URL.createObjectURL(file);
-                    baseFilename = file.name ? file.name.replace(/\.[^/.]+$/, "") : "Video";
-                    video.src = blobUrl;
-                    video.style.display = "block";
-                    seekbarContainer.style.display = "flex";
-                    updateChooseVideoBtnVisibility();
-                    updatePopupFileUI();
-                    updateJumpToFrameInput();
-                } catch (e) {
-                    console.error("Failed to load shared video:", e);
+    navigator.serviceWorker.addEventListener("message", (event) => {
+        if (event.data && event.data.type === "frameseeker-share") {
+            const payload = event.data.payload;
+
+            if (payload?.files && payload.files.length > 0) {
+                const file = payload.files[0];
+
+                if (typeof loadVideoFile === "function") {
+                    loadVideoFile(file);
+                } else {
+                    console.error("loadVideoFile function not found!");
                 }
             }
         }

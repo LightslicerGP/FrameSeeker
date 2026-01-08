@@ -26,7 +26,7 @@ self.addEventListener("fetch", (event) => {
 
     const url = new URL(event.request.url);
 
-    if (url.pathname.startsWith("/videoIncoming")) {
+    if (url.pathname.endsWith("videoIncoming")) {
         event.respondWith(handleShare(event.request));
         return;
     }
