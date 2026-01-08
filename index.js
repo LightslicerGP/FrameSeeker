@@ -289,6 +289,7 @@ if (saveFrameBtn) {
         }, 100);
     });
 }
+
 // ==================
 // SVG Icon Constants
 // ==================
@@ -858,16 +859,6 @@ function loadVideoFile(file) {
     // Update Play/Pause Icon safely
     if (typeof updatePlayPauseIcon === "function") {
         updatePlayPauseIcon();
-    }
-
-    // --- SAFE FUNCTION CALLS (Prevents Crash) ---
-
-    if (typeof updateChooseVideoBtnVisibility === "function") {
-        updateChooseVideoBtnVisibility();
-    } else {
-        console.warn("updateChooseVideoBtnVisibility is missing");
-        // Fallback: Manually hide the button if it exists
-        if (chooseVideoBtn) chooseVideoBtn.style.display = 'none';
     }
 
     if (typeof updatePopupFileUI === "function") {
