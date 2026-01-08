@@ -81,8 +81,8 @@ self.addEventListener('message', async (event) => {
 // Share handler
 async function handleShare(request) {
     try {
-        const cloned = request.clone();
-        const formData = await cloned.formData();
+        const formData = await request.formData();
+
         const title = formData.get('title') || '';
         const text = formData.get('text') || '';
         const url = formData.get('url') || '';
@@ -100,13 +100,10 @@ async function handleShare(request) {
         const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
         let client = clientList[0];
 
-        if (!client) {
-            client = await clients.openWindow("./");
+        if (client) {
+            client.postMessage({ type: 'frameseeker-share', payload });
         }
 
-        client?.postMessage({ type: 'frameseeker-share', payload });
-
-        // ALWAYS redirect after share
         return Response.redirect("./", 303);
     } catch (err) {
         console.error("Share handler crash:", err);

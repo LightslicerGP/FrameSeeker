@@ -5,7 +5,7 @@ const installBtn = document.getElementById("install-btn");
 const isStandalone = window.matchMedia("(display-mode: standalone)").matches
     || window.navigator.standalone === true;
 
-if (!isStandalone) {
+if (!isStandalone && installBtn) {
     installBtn.style.display = "none"; // start hidden
 
     window.addEventListener("beforeinstallprompt", (e) => {
@@ -16,7 +16,6 @@ if (!isStandalone) {
 
     installBtn.addEventListener("click", async () => {
         installBtn.style.display = "none";
-
         if (deferredPrompt) {
             deferredPrompt.prompt();
             const outcome = await deferredPrompt.userChoice;
@@ -24,38 +23,58 @@ if (!isStandalone) {
             deferredPrompt = null;
         }
     });
-} else {
+} else if (installBtn) {
     installBtn.style.display = "none";
 }
 
-// Register service worker
+// ==========================================
+// SERVICE WORKER & SHARE HANDLING
+// ==========================================
 if ("serviceWorker" in navigator) {
+
+    // 1. Register the Service Worker
     window.addEventListener("load", () => {
         navigator.serviceWorker.register("./sw.js")
-            .then(() => console.log("Service worker registered"))
+            .then((registration) => {
+                console.log("Service worker registered");
+
+                // 2. HANDSHAKE: Ask SW if there is a shared file waiting
+                if (registration.active) {
+                    registration.active.postMessage({ type: 'request-last-share' });
+                }
+            })
             .catch((err) => console.error("Service worker error:", err));
+    });
+
+    // 3. Listen for the file from the Service Worker
+    navigator.serviceWorker.addEventListener("message", (event) => {
+        if (event.data && event.data.type === "frameseeker-share") {
+            const payload = event.data.payload;
+            console.log("PWA received shared payload:", payload);
+
+            if (payload?.files && payload.files.length > 0) {
+                const file = payload.files[0];
+
+                // Ensure loadVideoFile exists (from index.js)
+                if (typeof loadVideoFile === "function") {
+                    loadVideoFile(file);
+                } else {
+                    console.error("loadVideoFile function not found!");
+                }
+            }
+        }
     });
 }
 
-navigator.serviceWorker.addEventListener("message", async (event) => {
-    if (event.data?.type !== "frameseeker-share") return;
-
-    const files = event.data.payload?.files;
-    if (files && files.length > 0) {
-        loadVideoFile(files[0]);
-    }
-});
-
-
-// ===== Share / Launch Handling =====
-
-// Handle files from Windows launchQueue (if supported)
+// Handle files from Windows launchQueue (Desktop PWA)
 if ("launchQueue" in window) {
     launchQueue.setConsumer(async (launchParams) => {
         if (!launchParams.files.length) return;
         for (const handle of launchParams.files) {
             const file = await handle.getFile();
-            loadVideo(file, file.name);
+            if (typeof loadVideoFile === "function") {
+                loadVideoFile(file);
+            }
             break;
         }
     });
