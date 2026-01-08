@@ -459,16 +459,14 @@
   "orientation": "any",
   "scope": "./",
   "share_target": {
-    "action": "/videoIncoming",
+    "action": "./videoIncoming",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {
-      "files": [
-        {
-          "name": "files",
-          "accept": ["video/*"]
-        }
-      ]
+      "files": {
+        "name": "files",
+        "accept": ["video/*"]
+      }
     }
   },
   "short_name": "FrameSeeker",
