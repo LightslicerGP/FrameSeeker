@@ -37,6 +37,16 @@ if ("serviceWorker" in navigator) {
     });
 }
 
+navigator.serviceWorker.addEventListener("message", async (event) => {
+    if (event.data?.type !== "frameseeker-share") return;
+
+    const files = event.data.payload?.files;
+    if (files && files.length > 0) {
+        loadVideoFile(files[0]);
+    }
+});
+
+
 // ===== Share / Launch Handling =====
 
 // Handle files from Windows launchQueue (if supported)

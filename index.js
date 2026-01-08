@@ -178,7 +178,7 @@ function getMaxFrameNumber() {
     return 9999;
 }
 
-const CAPTURE_FILENAME_Z_SPACING = 0; 
+const CAPTURE_FILENAME_Z_SPACING = 0;
 
 function getCaptureFileName() {
     let base = "capture";
@@ -646,29 +646,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     fileInput.addEventListener('change', (e) => {
-        const file = e.target.files && e.target.files[0];
+        const file = e.target.files?.[0];
         if (!file) return;
-
-        const url = URL.createObjectURL(file);
-
-        video.dataset.name = file.name;
-        video.dataset.lastModified = file.lastModified;
-
-        video.src = url;
-        video.currentTime = 0;
-
-        if (currentTimeDisplay) currentTimeDisplay.textContent = '00:00';
-        if (totalTimeDisplay) totalTimeDisplay.textContent = '00:00';
-
-        localStorage.setItem('videoState', JSON.stringify({
-            currentTime: 0,
-            name: file.name,
-            lastModified: file.lastModified
-        }));
-
-        updatePlayPauseIcon();
-        resetControlsAutoHide();
-        console.log('fileInput changed (file selected)');
+        loadVideoFile(file);
     });
 
     // ---- Resume Prompt after load
@@ -854,3 +834,25 @@ document.addEventListener('DOMContentLoaded', () => {
         scheduleControlsAutoHide();
     }
 });
+
+
+function loadVideoFile(file) {
+    const url = URL.createObjectURL(file);
+
+    video.dataset.name = file.name;
+    video.dataset.lastModified = file.lastModified;
+
+    video.src = url;
+    video.currentTime = 0;
+
+    localStorage.setItem('videoState', JSON.stringify({
+        currentTime: 0,
+        name: file.name,
+        lastModified: file.lastModified
+    }));
+
+    updatePlayPauseIcon();
+    updateChooseVideoBtnVisibility();
+    updatePopupFileUI();
+    updateJumpToFrameInput();
+}
