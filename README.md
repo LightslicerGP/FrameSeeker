@@ -2,11 +2,24 @@
 
 A PWA (or possibly an actual app) that allows you to view and save frames of a video.
 
-To Do:
+## To Do
 
 - [x] Hide seekbar (+ mabye controlls) when unfocused/tapped out of
-- [x] get rid of download prompts, use storage api thing (not available on mobile API wise)
+- [x] get rid of download prompts, use storage api thing (not available on mobile API wise [kinda 1.8.26])
 - [x] add a "jump to frame" textbox and button
-- [ ] Fix frame number so its z-spaced based on video length
+- [x] Fix frame number so its z-spaced based on video length
+- [x] Add keyboard shortcuts for navigation?
 - [ ] 2x speed button?
-- [ ] Add keyboard shortcuts for navigation?
+
+## Keyboard Shortcuts
+
+- [x] q: Back 15s
+- [x] e: Forward 15s
+- [x] z: Back 5s
+- [x] c: Forward 5s
+- [x] a: Back 1 Frame
+- [x] d: Forward 1 Frame
+- [x] Space: Play/Pause
+- [x] s: Capture Frame
+- [x] w: Set Framerate
+- [x] x: Jump To Frame

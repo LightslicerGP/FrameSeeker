@@ -1,12 +1,11 @@
 const CACHE_NAME = "pwa-cache";
-const SHARE_CACHE = "share-target-buffer"; // New dedicated cache
 const ASSETS = [
-    "./",
-    "./index.html",
-    "./index.css",
-    "./index.js",
-    "./pwa.js",
-    "./manifest.json"
+    "/",
+    "/index.html",
+    "/index.css",
+    "/index.js",
+    "/pwa.js",
+    "/manifest.json"
 ];
 
 self.addEventListener("install", event => {
@@ -20,7 +19,7 @@ self.addEventListener("activate", event => {
     event.waitUntil(clients.claim());
 });
 
-self.addEventListener("fetch", (event) => {
+self.addEventListener("fetch", event => {
     const url = new URL(event.request.url);
 
     // ==========================================
@@ -30,8 +29,8 @@ self.addEventListener("fetch", (event) => {
     if (event.request.method === "POST" && url.pathname.endsWith("videoIncoming")) {
         event.respondWith((async () => {
             try {
-                // 1. Open the dedicated share cache
-                const cache = await caches.open(SHARE_CACHE);
+                // 1. Open a named cache directly with its literal name
+                const cache = await caches.open("share-target-buffer");
 
                 // 2. Create a stream-based response.
                 // CRITICAL: We pass the 'Content-Type' header so the boundary string
@@ -61,22 +60,17 @@ self.addEventListener("fetch", (event) => {
         event.respondWith(
             (async () => {
                 try {
-                    // Try network first
                     const networkResponse = await fetch(event.request);
-                    // Update cache
                     const cache = await caches.open(CACHE_NAME);
                     cache.put(event.request, networkResponse.clone());
                     return networkResponse;
-                } catch {
-                    // Fallback to cache
+                } catch (err) {
                     const cachedResponse = await caches.match(event.request);
                     if (cachedResponse) return cachedResponse;
-                    
-                    // If navigating (loading the page), return index.html
                     if (event.request.mode === "navigate") {
-                        return caches.match("./index.html");
+                        return caches.match("/index.html");
                     }
-                    // Return nothing (let it fail) or a placeholder if needed
+                    throw err;
                 }
             })()
         );

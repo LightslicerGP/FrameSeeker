@@ -1,4 +1,8 @@
 // ==================
+// Global debug flag
+const debug = false;
+
+// ==================
 // Element Selectors
 // ==================
 const video = document.getElementById('video');
@@ -35,6 +39,9 @@ let popupJustOpened = false;
 
 // For directory picker support
 let saveDirHandle = null;
+
+// --- NEW: Resume video currentTime after file load, if requested by resumePrompt
+let _pendingResumeCurrentTime = null;
 
 // --- AUTO-HIDE CONTROLS state ---
 let controlsAutoHideTimer = null;
@@ -145,7 +152,7 @@ function toggleControls() {
     } else {
         clearControlsAutoHideTimer();
     }
-    console.log('toggleControls called');
+    if (debug) console.log('toggleControls called');
 }
 
 // --- NEW: Utility for 'Jump to Frame'
@@ -198,109 +205,109 @@ function getCaptureFileName() {
 // ---- Directory picker helpers for saving image if supported ----
 
 async function requestSaveDirectory() {
-    console.log("==== [requestSaveDirectory] ====");
+    if (debug) console.log("==== [requestSaveDirectory] ====");
     if (!window.showDirectoryPicker) {
         console.error("showDirectoryPicker is not available in this environment.");
-        console.log("Cannot use directory picker! Returning null.");
+        if (debug) console.log("Cannot use directory picker! Returning null.");
         return null;
     }
     try {
-        console.log("Calling showDirectoryPicker... (user should see a picker now)");
+        if (debug) console.log("Calling showDirectoryPicker... (user should see a picker now)");
         const handle = await window.showDirectoryPicker({ startIn: "pictures" });
-        console.log("Got directory handle:", handle);
+        if (debug) console.log("Got directory handle:", handle);
 
-        console.log("Requesting readwrite permissions for chosen directory...");
+        if (debug) console.log("Requesting readwrite permissions for chosen directory...");
         const perm = await handle.requestPermission({ mode: "readwrite" });
-        console.log("Permission result:", perm);
+        if (debug) console.log("Permission result:", perm);
 
         if (perm === "granted") {
-            console.log("Permission granted! Storing handle in saveDirHandle and returning handle...");
+            if (debug) console.log("Permission granted! Storing handle in saveDirHandle and returning handle...");
             saveDirHandle = handle;
             return handle;
         } else {
             console.error("Permission to write to directory was not granted.");
-            console.log("Permission was:", perm, "Returning null.");
+            if (debug) console.log("Permission was:", perm, "Returning null.");
         }
     } catch (e) {
         // user may cancel
         console.error("Error while requesting directory:", e);
-        console.log("Directory picker threw an error, possibly user cancellation.");
+        if (debug) console.log("Directory picker threw an error, possibly user cancellation.");
     }
-    console.log("Returning null, could not obtain directory handle.");
+    if (debug) console.log("Returning null, could not obtain directory handle.");
     return null;
 }
 
 async function ensureSaveDirectory() {
-    console.log("==== [ensureSaveDirectory] ====");
+    if (debug) console.log("==== [ensureSaveDirectory] ====");
     if (saveDirHandle) {
-        console.log("saveDirHandle already exists:", saveDirHandle);
+        if (debug) console.log("saveDirHandle already exists:", saveDirHandle);
         try {
-            console.log("Querying permission for saveDirHandle...");
+            if (debug) console.log("Querying permission for saveDirHandle...");
             const perm = await saveDirHandle.queryPermission({ mode: "readwrite" });
-            console.log("Permission for saveDirHandle is:", perm);
+            if (debug) console.log("Permission for saveDirHandle is:", perm);
             if (perm === "granted") {
-                console.log("Permission granted for existing saveDirHandle! Returning saveDirHandle.");
+                if (debug) console.log("Permission granted for existing saveDirHandle! Returning saveDirHandle.");
                 return saveDirHandle;
             } else {
                 console.error("Permission for existing saveDirHandle was not granted.");
-                console.log("Permission for handle was:", perm, "Will fall through to request a new handle.");
+                if (debug) console.log("Permission for handle was:", perm, "Will fall through to request a new handle.");
             }
         } catch (e) {
             console.error("Error querying permission for saveDirHandle:", e);
-            console.log("Exception thrown when checking permission on saveDirHandle, will request new one.");
+            if (debug) console.log("Exception thrown when checking permission on saveDirHandle, will request new one.");
         }
     } else {
-        console.log("No saveDirHandle exists yet.");
+        if (debug) console.log("No saveDirHandle exists yet.");
     }
     // No valid handle, so we request one
-    console.log("Requesting new save directory...");
+    if (debug) console.log("Requesting new save directory...");
     const result = await requestSaveDirectory();
     if (result) {
-        console.log("New save directory obtained!", result);
+        if (debug) console.log("New save directory obtained!", result);
     } else {
-        console.log("Failed to get a new save directory.");
+        if (debug) console.log("Failed to get a new save directory.");
     }
     return result;
 }
 
 async function saveBlobToDir(filename, blob) {
-    console.log("==== [saveBlobToDir] ====");
-    console.log("Filename to save:", filename);
-    console.log("Blob info:", blob);
+    if (debug) console.log("==== [saveBlobToDir] ====");
+    if (debug) console.log("Filename to save:", filename);
+    if (debug) console.log("Blob info:", blob);
     const dir = await ensureSaveDirectory();
     if (!dir) {
         console.error("Failed to obtain save directory (user may have cancelled or permission denied).");
-        console.log("Aborting saveBlobToDir due to missing directory.");
+        if (debug) console.log("Aborting saveBlobToDir due to missing directory.");
         return false;
     }
     try {
-        console.log("Calling getFileHandle for:", filename);
+        if (debug) console.log("Calling getFileHandle for:", filename);
         const fileHandle = await dir.getFileHandle(filename, { create: true });
         if (!fileHandle) {
             console.error("Failed to get file handle for", filename);
-            console.log("File handle is falsy, aborting save.");
+            if (debug) console.log("File handle is falsy, aborting save.");
             return false;
         }
-        console.log("File handle obtained:", fileHandle);
+        if (debug) console.log("File handle obtained:", fileHandle);
 
-        console.log("Creating writable stream for file...");
+        if (debug) console.log("Creating writable stream for file...");
         const writable = await fileHandle.createWritable();
         if (!writable) {
             console.error("Failed to create writable stream for", filename);
-            console.log("Writable stream is falsy, aborting save.");
+            if (debug) console.log("Writable stream is falsy, aborting save.");
             return false;
         }
-        console.log("Writable stream obtained! Attempting to write blob...");
+        if (debug) console.log("Writable stream obtained! Attempting to write blob...");
         await writable.write(blob);
-        console.log("Write to file successful! Closing writable stream...");
+        if (debug) console.log("Write to file successful! Closing writable stream...");
         await writable.close();
-        console.log("Writable stream closed. Save process complete.");
+        if (debug) console.log("Writable stream closed. Save process complete.");
         return true;
     } catch (e) {
         console.error("Error saving blob to directory:", e);
-        console.log("Exception occurred while saving blob to", filename);
+        if (debug) console.log("Exception occurred while saving blob to", filename);
     }
-    console.log("Returning false from saveBlobToDir because of an error.");
+    if (debug) console.log("Returning false from saveBlobToDir because of an error.");
     return false;
 }
 
@@ -386,32 +393,32 @@ if (seekbarSlider) {
         }
         // Only run hide logic if popup is not open
         resetControlsAutoHide();
-        console.log('seekbarSlider input');
+        if (debug) console.log('seekbarSlider input');
     });
     seekbarSlider.addEventListener('mousedown', () => {
         isSeeking = true;
         resetControlsAutoHide();
-        console.log('seekbarSlider mousedown');
+        if (debug) console.log('seekbarSlider mousedown');
     });
     seekbarSlider.addEventListener('mouseup', () => {
         isSeeking = false;
         resetControlsAutoHide();
-        console.log('seekbarSlider mouseup');
+        if (debug) console.log('seekbarSlider mouseup');
     });
     seekbarSlider.addEventListener('touchstart', () => {
         isSeeking = true;
         resetControlsAutoHide();
-        console.log('seekbarSlider touchstart');
+        if (debug) console.log('seekbarSlider touchstart');
     });
     seekbarSlider.addEventListener('touchend', () => {
         isSeeking = false;
         resetControlsAutoHide();
-        console.log('seekbarSlider touchend');
+        if (debug) console.log('seekbarSlider touchend');
     });
     seekbarSlider.addEventListener('click', (e) => {
         e.stopPropagation();
         resetControlsAutoHide();
-        console.log('seekbarSlider clicked');
+        if (debug) console.log('seekbarSlider clicked');
     });
 }
 
@@ -446,7 +453,7 @@ playpauseBtn.addEventListener('click', (e) => {
     }
     updatePlayPauseIcon();
     resetControlsAutoHide();
-    console.log('playpauseBtn clicked');
+    if (debug) console.log('playpauseBtn clicked');
 });
 video.addEventListener('play', () => {
     updatePlayPauseIcon();
@@ -454,7 +461,7 @@ video.addEventListener('play', () => {
     if (!popupOverlay.classList.contains('active')) {
         scheduleControlsAutoHide();
     }
-    console.log('video play event (icon update)');
+    if (debug) console.log('video play event (icon update)');
 });
 video.addEventListener('pause', () => {
     updatePlayPauseIcon();
@@ -462,49 +469,49 @@ video.addEventListener('pause', () => {
     if (!popupOverlay.classList.contains('active')) {
         scheduleControlsAutoHide();
     }
-    console.log('video pause event (icon update)');
+    if (debug) console.log('video pause event (icon update)');
 });
 back15Btn.addEventListener('click', (e) => {
     e.stopPropagation();
     skipVideo(-15);
     resetControlsAutoHide();
-    console.log('back15Btn clicked');
+    if (debug) console.log('back15Btn clicked');
 });
 forward15Btn.addEventListener('click', (e) => {
     e.stopPropagation();
     skipVideo(15);
     resetControlsAutoHide();
-    console.log('forward15Btn clicked');
+    if (debug) console.log('forward15Btn clicked');
 });
 back5Btn.addEventListener('click', (e) => {
     e.stopPropagation();
     skipVideo(-5);
     resetControlsAutoHide();
-    console.log('back5Btn clicked');
+    if (debug) console.log('back5Btn clicked');
 });
 forward5Btn.addEventListener('click', (e) => {
     e.stopPropagation();
     skipVideo(5);
     resetControlsAutoHide();
-    console.log('forward5Btn clicked');
+    if (debug) console.log('forward5Btn clicked');
 });
 prevFrameBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     skipVideo(-getFrameDuration());
     resetControlsAutoHide();
-    console.log('prevFrameBtn clicked');
+    if (debug) console.log('prevFrameBtn clicked');
 });
 nextFrameBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     skipVideo(getFrameDuration());
     resetControlsAutoHide();
-    console.log('nextFrameBtn clicked');
+    if (debug) console.log('nextFrameBtn clicked');
 });
 document.querySelectorAll('.button').forEach(button => {
     button.addEventListener('click', (e) => {
         e.stopPropagation();
         resetControlsAutoHide();
-        console.log('A .button element was clicked');
+        if (debug) console.log('A .button element was clicked');
     });
 });
 
@@ -515,13 +522,13 @@ video.addEventListener('click', () => {
     if (isControlsVisible() && !popupOverlay.classList.contains('active')) {
         scheduleControlsAutoHide();
     }
-    console.log('video element clicked');
+    if (debug) console.log('video element clicked');
 });
 controls.addEventListener('click', (e) => {
     if (popupOverlay.classList.contains('active')) return;
     if (!e.target.closest('.button')) {
         toggleControls();
-        console.log('controls clicked');
+        if (debug) console.log('controls clicked');
     } else {
         resetControlsAutoHide();
     }
@@ -530,7 +537,7 @@ playbackControls.addEventListener('click', (e) => {
     if (popupOverlay.classList.contains('active')) return;
     if (!e.target.closest('.button')) {
         toggleControls();
-        console.log('playbackControls clicked');
+        if (debug) console.log('playbackControls clicked');
     } else {
         resetControlsAutoHide();
     }
@@ -544,7 +551,7 @@ document.body.addEventListener('click', (e) => {
             resumeDiv.remove();
             showResumeBlockBtns();
             resetControlsAutoHide();
-            console.log('resumePrompt closed by body click outside');
+            if (debug) console.log('resumePrompt closed by body click outside');
             // Don't run any further logic if the resumePrompt was open and now closed
             return;
         }
@@ -554,7 +561,7 @@ document.body.addEventListener('click', (e) => {
         const clickedTopLeftButtons = e.target.closest('#topLeftButtons');
         if (!clickedInsidePopup && !clickedTopLeftButtons) {
             hidePopup();
-            console.log('popupOverlay was open and body clicked');
+            if (debug) console.log('popupOverlay was open and body clicked');
         }
         return;
     }
@@ -565,7 +572,7 @@ document.body.addEventListener('click', (e) => {
         e.target !== video
     ) {
         toggleControls();
-        console.log('document.body clicked (outside controls/buttons)');
+        if (debug) console.log('document.body clicked (outside controls/buttons)');
     }
 });
 
@@ -581,6 +588,96 @@ document.addEventListener('keydown', () => {
     if (!popupOverlay.classList.contains('active')) resetControlsAutoHide();
 }, { passive: true });
 
+// ==================
+// KEYBOARD SHORTCUTS
+// ==================
+// README mappings (q=-15s, e=+15s, z=-5s, c=+5s, a=-frame, d=+frame, space=play/pause, s=capture, w=set framerate, x=jump to frame)
+document.addEventListener('keydown', function (e) {
+    if (popupOverlay.classList.contains('active')) return; // Do not intercept if popup open
+    // Ignore keyboard on inputs/textareas except when popup
+    const tag = e.target.tagName.toLowerCase();
+    if ((tag === 'input' || tag === 'textarea') && !e.target.classList.contains('allow-hotkey')) return;
+
+    switch (e.key) {
+        case ' ':
+        case 'Spacebar': // old Firefox
+            // Play/Pause
+            e.preventDefault();
+            if (!video || !video.src) return;
+            if (video.paused) {
+                video.play();
+            } else {
+                video.pause();
+            }
+            updatePlayPauseIcon();
+            resetControlsAutoHide();
+            break;
+        case 'q':
+        case 'Q':
+            // Back 15s
+            e.preventDefault();
+            skipVideo(-15);
+            resetControlsAutoHide();
+            break;
+        case 'e':
+        case 'E':
+            // Forward 15s
+            e.preventDefault();
+            skipVideo(15);
+            resetControlsAutoHide();
+            break;
+        case 'z':
+        case 'Z':
+            // Back 5s
+            e.preventDefault();
+            skipVideo(-5);
+            resetControlsAutoHide();
+            break;
+        case 'c':
+        case 'C':
+            // Forward 5s
+            e.preventDefault();
+            skipVideo(5);
+            resetControlsAutoHide();
+            break;
+        case 'a':
+        case 'A':
+            // Back 1 Frame
+            e.preventDefault();
+            skipVideo(-getFrameDuration());
+            resetControlsAutoHide();
+            break;
+        case 'd':
+        case 'D':
+            // Forward 1 Frame
+            e.preventDefault();
+            skipVideo(getFrameDuration());
+            resetControlsAutoHide();
+            break;
+        case 's':
+        case 'S':
+            // Capture Frame
+            e.preventDefault();
+            if (saveFrameBtn) {
+                saveFrameBtn.click();
+            }
+            resetControlsAutoHide();
+            break;
+        case 'w':
+        case 'W':
+            // Set Framerate (open popup)
+            e.preventDefault();
+            showPopup('framerate');
+            break;
+        case 'x':
+        case 'X':
+            // Jump to Frame (open popup)
+            e.preventDefault();
+            showPopup('timestamp');
+            break;
+    }
+});
+
 // ---- Popup Overlay
 
 // --- Update framerate on framerate box input
@@ -591,7 +688,7 @@ popupInput.addEventListener('input', () => {
     if (mode === 'framerate') {
         if (!isNaN(val) && val > 0) {
             selectedFramerate = val;
-            console.log('Framerate changed live:', selectedFramerate);
+            if (debug) console.log('Framerate changed live:', selectedFramerate);
         }
     }
 
@@ -618,12 +715,12 @@ popupInput.addEventListener('keydown', (e) => {
 framerateSelectorBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     showPopup('framerate');
-    console.log('framerateSelectorBtn clicked');
+    if (debug) console.log('framerateSelectorBtn clicked');
 });
 timestampSelectorBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     showPopup('timestamp');
-    console.log('timestampSelectorBtn clicked');
+    if (debug) console.log('timestampSelectorBtn clicked');
 });
 
 function showPopup(mode) {
@@ -661,7 +758,7 @@ function hidePopup() {
         if (!isNaN(value) && value > 0) {
             selectedFramerate = value;
             localStorage.setItem('selectedFramerate', value);
-            console.log('Framerate saved:', value);
+            if (debug) console.log('Framerate saved:', value);
         }
     }
 
@@ -684,7 +781,7 @@ function hidePopup() {
 
 popupOverlay.addEventListener('click', (e) => {
     e.stopPropagation();
-    console.log('popupOverlay clicked');
+    if (debug) console.log('popupOverlay clicked');
 });
 
 // ==================
@@ -706,13 +803,16 @@ document.addEventListener('DOMContentLoaded', () => {
             fileInput.click();
         }
         resetControlsAutoHide();
-        console.log('chooseVideoBtn clicked');
+        if (debug) console.log('chooseVideoBtn clicked');
     });
 
+    // -- PATCH RESUME --
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        loadVideoFile(file);
+        // When resuming after prompt, load previous time if needed
+        loadVideoFile(file, _pendingResumeCurrentTime);
+        _pendingResumeCurrentTime = null;
     });
 
     // ---- Resume Prompt after load
@@ -729,54 +829,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const textEl = document.createElement('p');
         textEl.textContent = `Resume "${savedState.name}"?`;
-        textEl.style.margin = '0';
-        textEl.style.padding = '0';
-        textEl.style.fontSize = '16px';
 
         const btnContainer = document.createElement('div');
         btnContainer.style.display = 'flex';
         btnContainer.style.flexDirection = 'row';
         btnContainer.style.justifyContent = 'center';
         btnContainer.style.alignItems = 'center';
-        btnContainer.style.gap = '16px';
-        btnContainer.style.width = 'calc(96px * 2 + 16px)';
+        btnContainer.style.gap = '8px';
+        btnContainer.style.width = 'calc(72px * 2 + 8px)';
 
         const yesButton = document.createElement('button');
         yesButton.id = 'resumeBtn';
         yesButton.textContent = 'Yes';
         Object.assign(yesButton.style, {
-            width: '96px',
-            height: '48px',
+            width: '72px',
+            height: '32px',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            fontSize: '24px',
+            fontSize: '16px',
             border: 'none',
             borderRadius: '16px',
             background: 'rgba(0,128,255,0.5)',
             cursor: 'pointer',
-            transition: 'background 0.15s'
+            transition: 'background 0.25s'
         });
 
         const noButton = document.createElement('button');
         noButton.id = 'cancelResumeBtn';
         noButton.textContent = 'No';
         Object.assign(noButton.style, {
-            width: '96px',
-            height: '48px',
+            width: '72px',
+            height: '32px',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            fontSize: '24px',
+            fontSize: '16px',
             border: 'none',
             borderRadius: '16px',
             background: 'rgba(0,0,0,0.5)',
             cursor: 'pointer',
-            transition: 'background 0.15s'
+            transition: 'background 0.25s'
         });
 
-        btnContainer.appendChild(yesButton);
         btnContainer.appendChild(noButton);
+        btnContainer.appendChild(yesButton);
 
         resumeDiv.appendChild(textEl);
         resumeDiv.appendChild(btnContainer);
@@ -792,13 +889,12 @@ document.addEventListener('DOMContentLoaded', () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            boxSizing: 'border-box',
             gap: '8px'
         });
 
         textEl.style.marginleft = '8px';
         textEl.style.marginright = '8px';
-        textEl.style.maxWidth = 'calc(96px*2 + 16px - 16px)';
+        textEl.style.width = 'calc(72px*2 + 8px - 16px)';
         textEl.style.wordBreak = 'break-word';
 
         document.body.appendChild(resumeDiv);
@@ -806,6 +902,12 @@ document.addEventListener('DOMContentLoaded', () => {
         hideResumeBlockBtns();
 
         yesButton.addEventListener('click', () => {
+            // Store the previous place in _pendingResumeCurrentTime to pass to loadVideoFile
+            _pendingResumeCurrentTime = (
+                savedState && typeof savedState.currentTime === "number"
+                    ? savedState.currentTime
+                    : null
+            );
             fileInput.style.display = '';
             setTimeout(() => {
                 fileInput.click();
@@ -814,14 +916,14 @@ document.addEventListener('DOMContentLoaded', () => {
             resumeDiv.remove();
             showResumeBlockBtns();
             resetControlsAutoHide();
-            console.log('resumePrompt: Yes button clicked');
+            if (debug) console.log('resumePrompt: Yes button clicked');
         });
 
         noButton.addEventListener('click', () => {
             resumeDiv.remove();
             showResumeBlockBtns();
             resetControlsAutoHide();
-            console.log('resumePrompt: No button clicked');
+            if (debug) console.log('resumePrompt: No button clicked');
         });
     }
 
@@ -833,7 +935,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.addEventListener('resize', () => {
         resizeCanvas();
-        console.log('window resized');
+        if (debug) console.log('window resized');
     });
     resizeCanvas();
 
@@ -903,8 +1005,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-function loadVideoFile(file) {
-    console.log("Loading file:", file.name, "Type:", file.type, "Size:", file.size);
+// Modified loadVideoFile: optionally restore to a previous time (for resume)
+function loadVideoFile(file, resumeCurrentTime) {
+    if (debug) console.log("Loading file:", file.name, "Type:", file.type, "Size:", file.size);
 
     const url = URL.createObjectURL(file);
 
@@ -913,11 +1016,25 @@ function loadVideoFile(file) {
 
     video.src = url;
     video.load(); // Force the video element to acknowledge the new source
-    video.currentTime = 0;
+
+    // If resumeCurrentTime provided, seek after metadata loaded
+    if (typeof resumeCurrentTime === "number" && resumeCurrentTime > 0) {
+        // Seek only after loadedmetadata, remove our temporary event after
+        const handleLoadedMetadata = () => {
+            // Clamp time to video duration just in case
+            let seekTo = Math.max(0, Math.min(resumeCurrentTime, video.duration || resumeCurrentTime));
+            video.currentTime = seekTo;
+            video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+            if (debug) console.log("Restored video position to", seekTo);
+        };
+        video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    } else {
+        video.currentTime = 0;
+    }
 
     // Save state
     localStorage.setItem('videoState', JSON.stringify({
-        currentTime: 0,
+        currentTime: typeof resumeCurrentTime === "number" && resumeCurrentTime > 0 ? resumeCurrentTime : 0,
         name: file.name,
         lastModified: file.lastModified
     }));
