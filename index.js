@@ -828,7 +828,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resumeDiv.id = 'resumePrompt';
 
         const textEl = document.createElement('p');
-        textEl.textContent = `Resume "${savedState.name}"?`;
+        textEl.innerHTML = `Resume<br>"${savedState.name}"?`;
 
         const btnContainer = document.createElement('div');
         btnContainer.style.display = 'flex';
@@ -836,13 +836,13 @@ document.addEventListener('DOMContentLoaded', () => {
         btnContainer.style.justifyContent = 'center';
         btnContainer.style.alignItems = 'center';
         btnContainer.style.gap = '8px';
-        btnContainer.style.width = 'calc(72px * 2 + 8px)';
+        btnContainer.style.width = 'calc(88px * 2 + 8px)';
 
         const yesButton = document.createElement('button');
         yesButton.id = 'resumeBtn';
         yesButton.textContent = 'Yes';
         Object.assign(yesButton.style, {
-            width: '72px',
+            width: '88px',
             height: '32px',
             display: 'flex',
             justifyContent: 'center',
@@ -859,7 +859,7 @@ document.addEventListener('DOMContentLoaded', () => {
         noButton.id = 'cancelResumeBtn';
         noButton.textContent = 'No';
         Object.assign(noButton.style, {
-            width: '72px',
+            width: '88px',
             height: '32px',
             display: 'flex',
             justifyContent: 'center',
@@ -889,12 +889,12 @@ document.addEventListener('DOMContentLoaded', () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '8px'
+            gap: '12px'
         });
 
         textEl.style.marginleft = '8px';
         textEl.style.marginright = '8px';
-        textEl.style.width = 'calc(72px*2 + 8px - 16px)';
+        textEl.style.width = 'calc(88px*2 + 8px - 16px)';
         textEl.style.wordBreak = 'break-word';
 
         document.body.appendChild(resumeDiv);

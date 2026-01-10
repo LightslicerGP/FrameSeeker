@@ -68,7 +68,6 @@ svg {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
   padding: 8px;
   border-radius: 32px;
   border: none;
@@ -118,6 +117,7 @@ svg {
 #topLeftButtons {
   display: flex;
   align-items: center;
+  padding: 0px 4px;
   gap: 12px;
 }
 
