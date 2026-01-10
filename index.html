@@ -46,7 +46,7 @@
     </div> -->
 
     <div id="playbackControls">
-      <div id="back15Btn" class="button glassy medium">
+      <div id="back15Btn" class="glassy button medium">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path stroke="none" d="M0 0h24v24H0z" fill="none" />
           <path d="M8 20h2a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-2v-3h3" />
@@ -55,13 +55,13 @@
           <path d="M7 9l-3 -3l3 -3" />
         </svg>
       </div>
-      <div id="playpauseBtn" class="button glassy large">
+      <div id="playpauseBtn" class="glassy button large">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff">
           <path stroke="none" d="M0 0h24v24H0z" fill="none" />
           <path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z" />
         </svg>
       </div>
-      <div id="forward15Btn" class="button glassy medium">
+      <div id="forward15Btn" class="glassy button medium">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path stroke="none" d="M0 0h24v24H0z" fill="none" />
           <path d="M17 9l3 -3l-3 -3" />
@@ -71,15 +71,16 @@
         </svg>
       </div>
     </div>
+
     <div id="controls">
       <div id="top">
-        <div class="left button glassy">
-          <div id="popupOverlay">
+        <div class="left">
+          <div id="popupOverlay" class="glassy">
             <p id="popupLabel"></p>
             <input id="popupValue" type="number" />
           </div>
 
-          <div id="topLeftButtons">
+          <div id="topLeftButtons" class="glassy button">
             <svg
               id="framerateSelectorBtn"
               xmlns="http://www.w3.org/2000/svg"
@@ -116,8 +117,9 @@
             </svg>
           </div>
         </div>
+
         <div class="right">
-          <div id="install-btn" class="button glassy">
+          <div id="install-btn" class="glassy button">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -133,7 +135,7 @@
               <path d="M12 4l0 12" />
             </svg>
           </div>
-          <div id="chooseVideoBtn" class="button glassy">
+          <div id="chooseVideoBtn" class="glassy button">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <path stroke="none" d="M0 0h24v24H0z" fill="none" />
               <path d="M14 3v4a1 1 0 0 0 1 1h4" />
@@ -142,7 +144,7 @@
               <path d="M9.5 13.5l2.5 -2.5l2.5 2.5" />
             </svg>
           </div>
-          <div id="saveFrameBtn" class="button glassy">
+          <div id="saveFrameBtn" class="glassy button">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <path stroke="none" d="M0 0h24v24H0z" fill="none" />
               <path d="M15 8h.01" />
@@ -156,10 +158,11 @@
           </div>
         </div>
       </div>
+
       <div id="bottom">
         <div>
           <div class="left">
-            <div id="prevFrameBtn" class="button glassy">
+            <div id="prevFrameBtn" class="glassy button">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -173,7 +176,8 @@
                 <path d="M18 6l-6 6l6 6" />
               </svg>
             </div>
-            <div id="back5Btn" class="button glassy">
+
+            <div id="back5Btn" class="glassy button">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -189,8 +193,9 @@
               </svg>
             </div>
           </div>
+
           <div class="right">
-            <div id="forward5Btn" class="button glassy">
+            <div id="forward5Btn" class="glassy button">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -205,7 +210,7 @@
                 <path d="M17 9l3 -3l-3 -3" />
               </svg>
             </div>
-            <div id="nextFrameBtn" class="button glassy">
+            <div id="nextFrameBtn" class="glassy button">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -221,6 +226,7 @@
             </div>
           </div>
         </div>
+
         <div class="seekbar glassy">
           <span id="currentTime">00:00</span>
           <input type="range" id="seekbarSlider" min="0" max="100" value="0" step="0.01" />

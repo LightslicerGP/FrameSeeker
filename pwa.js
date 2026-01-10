@@ -11,7 +11,7 @@ if (!isStandalone) {
     window.addEventListener("beforeinstallprompt", (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        installBtn.style.display = "block";
+        installBtn.style.display = "flex";
     });
 
     installBtn.addEventListener("click", async () => {

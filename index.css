@@ -58,6 +58,7 @@ svg {
   background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(16px);
   transition: background 0.1s ease-in-out;
+  border-radius: 32px;
 }
 
 .glassy:active {
@@ -69,8 +70,13 @@ svg {
   align-items: center;
   justify-content: center;
   padding: 8px;
-  border-radius: 32px;
   border: none;
+}
+
+/* Apply special padding+gap ONLY to .button elements that have 2 or more child elements */
+.button:has(> :nth-child(2)) {
+  padding: 8px 12px;
+  gap: 12px;
 }
 
 .button.medium,
@@ -114,12 +120,12 @@ svg {
   /* transition: opacity 0.25s ease-in-out; */
 }
 
-#topLeftButtons {
+/* #topLeftButtons {
   display: flex;
   align-items: center;
   padding: 0px 4px;
   gap: 12px;
-}
+} */
 
 #controls > #top > .right {
   display: flex;
@@ -238,7 +244,7 @@ svg {
   width: fit-content;
   max-width: 100%;
   white-space: nowrap;
-  padding: 8px;
+  padding: 14px 16px 16px 16px;
 }
 
 #popupOverlay.active {
