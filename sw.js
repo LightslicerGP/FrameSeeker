@@ -1,11 +1,11 @@
 const CACHE_NAME = "pwa-cache";
 const ASSETS = [
-    "/",
-    "/index.html",
-    "/index.css",
-    "/index.js",
-    "/pwa.js",
-    "/manifest.json"
+    "./",
+    "./index.html",
+    "./index.css",
+    "./index.js",
+    "./pwa.js",
+    "./manifest.json"
 ];
 
 self.addEventListener("install", event => {
@@ -68,7 +68,7 @@ self.addEventListener("fetch", event => {
                     const cachedResponse = await caches.match(event.request);
                     if (cachedResponse) return cachedResponse;
                     if (event.request.mode === "navigate") {
-                        return caches.match("/index.html");
+                        return caches.match("./index.html");
                     }
                     throw err;
                 }

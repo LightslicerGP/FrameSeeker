@@ -11,15 +11,17 @@
   margin: 0;
   border: 0;
   padding: 0;
-  /* font-family: inter, monospace; */
-  /* font-family: monospace; */
   font-family: "San Fransisco", inter;
-  color: #ffffff;
   -webkit-tap-highlight-color: transparent;
+  color: #ffffff;
 }
 
 .hidden {
-  opacity: 0;
+  opacity: 0 !important;
+}
+
+.removed {
+  display: none !important;
 }
 
 body {
@@ -73,8 +75,7 @@ svg {
   border: none;
 }
 
-/* Apply special padding+gap ONLY to .button elements that have 2 or more child elements */
-.button:has(> :nth-child(2)) {
+.button:has(> :not(.removed) ~ :not(.removed)) {
   padding: 8px 12px;
   gap: 12px;
 }
@@ -104,7 +105,7 @@ svg {
   height: calc(100vh - 64px);
   position: relative;
   z-index: 100;
-  transition: opacity 0.25s ease-in-out, blur 0.25s ease-in-out;
+  transition: all 0.25s ease-in-out;
 }
 
 #controls > #top {
@@ -119,13 +120,6 @@ svg {
   /* gap: 12px; */
   /* transition: opacity 0.25s ease-in-out; */
 }
-
-/* #topLeftButtons {
-  display: flex;
-  align-items: center;
-  padding: 0px 4px;
-  gap: 12px;
-} */
 
 #controls > #top > .right {
   display: flex;
@@ -143,18 +137,16 @@ svg {
   align-items: center;
   gap: 24px;
   z-index: 1000;
-  transition: opacity 0.25s ease-in-out, blur 0.25s ease-in-out;
+  transition: all 0.25s ease-in-out;
 }
 
 #playbackControls.hidden {
   opacity: 0;
-  filter: blur(0px);
   pointer-events: none;
 }
 
 #controls.hidden {
   opacity: 0;
-  filter: blur(0px);
   pointer-events: none;
 }
 

@@ -89,14 +89,14 @@ function getFrameDuration() {
 // Utility Functions
 // ==================
 function hideResumeBlockBtns() {
-    if (playpauseBtn) playpauseBtn.style.display = 'none';
-    if (back15Btn) back15Btn.style.display = 'none';
-    if (forward15Btn) forward15Btn.style.display = 'none';
+    if (playpauseBtn) playpauseBtn.classList.add('removed');
+    if (back15Btn) back15Btn.classList.add('removed');
+    if (forward15Btn) forward15Btn.classList.add('removed');
 }
 function showResumeBlockBtns() {
-    if (playpauseBtn) playpauseBtn.style.display = '';
-    if (back15Btn) back15Btn.style.display = '';
-    if (forward15Btn) forward15Btn.style.display = '';
+    if (playpauseBtn) playpauseBtn.classList.remove('removed');
+    if (back15Btn) back15Btn.classList.remove('removed');
+    if (forward15Btn) forward15Btn.classList.remove('removed');
 }
 
 function formatTime(seconds, useHours = false) {
@@ -334,7 +334,7 @@ saveFrameBtn.addEventListener('click', async function (e) {
             // fallback to download if user cancels or permission fails
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.style.display = 'none';
+            a.classList.add('removed');
             a.href = url;
             a.download = filename;
             document.body.appendChild(a);
@@ -350,7 +350,7 @@ saveFrameBtn.addEventListener('click', async function (e) {
             if (!blob) return;
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.style.display = 'none';
+            a.classList.add('removed');
             a.href = url;
             a.download = filename;
             document.body.appendChild(a);
@@ -726,7 +726,7 @@ timestampSelectorBtn.addEventListener('click', (e) => {
 function showPopup(mode) {
     popupOverlay.dataset.mode = mode;
     popupOverlay.classList.add('active');
-    buttons.style.display = 'none';
+    buttons.classList.add('removed');
 
     if (mode === 'framerate') {
         popupLabel.textContent = 'Select Framerate:';
@@ -771,7 +771,7 @@ function hidePopup() {
 
     popupOverlay.classList.remove('active');
     popupOverlay.dataset.mode = '';
-    buttons.style.display = 'flex';
+    buttons.classList.remove('removed');
 
     // Only start auto-hide if popup is not now open
     if (!popupOverlay.classList.contains('active')) {
@@ -792,7 +792,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'video/*,.mkv';
-    fileInput.style.display = 'none';
+    fileInput.classList.add('removed');
     document.body.appendChild(fileInput);
 
     chooseVideoBtn.addEventListener('click', (e) => {
@@ -908,10 +908,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     ? savedState.currentTime
                     : null
             );
-            fileInput.style.display = '';
+            fileInput.classList.remove('removed');
             setTimeout(() => {
                 fileInput.click();
-                fileInput.style.display = 'none';
+                fileInput.classList.add('removed');
             }, 0);
             resumeDiv.remove();
             showResumeBlockBtns();

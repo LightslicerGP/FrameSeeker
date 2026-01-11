@@ -6,16 +6,16 @@ const isStandalone = window.matchMedia("(display-mode: standalone)").matches
     || window.navigator.standalone === true;
 
 if (!isStandalone) {
-    installBtn.style.display = "none"; // start hidden
+    installBtn.classList.add('removed'); // start hidden
 
     window.addEventListener("beforeinstallprompt", (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        installBtn.style.display = "flex";
+        installBtn.classList.remove('removed');
     });
 
     installBtn.addEventListener("click", async () => {
-        installBtn.style.display = "none";
+        installBtn.classList.add('removed');
 
         if (deferredPrompt) {
             deferredPrompt.prompt();
@@ -25,13 +25,13 @@ if (!isStandalone) {
         }
     });
 } else {
-    installBtn.style.display = "none";
+    installBtn.classList.add('removed');
 }
 
 // Register service worker
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/sw.js")
+        navigator.serviceWorker.register("./sw.js")
             .then(() => console.log("Service worker registered"))
             .catch((err) => console.error("Service worker error:", err));
     });
