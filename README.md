@@ -10,6 +10,7 @@ A PWA (or possibly an actual app) that allows you to view and save frames of a v
 - [x] Fix frame number so its z-spaced based on video length
 - [x] Add keyboard shortcuts for navigation?
 - [ ] Add fullscreen video button
+- [ ] Add keyboard shortcut help button
 - [ ] 2x speed button?
 
 ## Keyboard Shortcuts
