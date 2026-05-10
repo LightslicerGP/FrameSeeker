@@ -29,6 +29,44 @@ const popupInput = document.getElementById('popupValue');
 const leftSection = document.querySelector('#controls > #top > .left');
 const saveFrameBtn = document.getElementById('saveFrameBtn');
 
+// --- Settings Button/Panel Custom Logic ---
+const settingsBtn = document.getElementById('settings-btn');
+const settingsDiv = document.getElementById('settings');
+
+if (settingsBtn && settingsDiv && chooseVideoBtn) {
+    settingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsBtn.classList.add('removed');
+        settingsDiv.classList.remove('removed');
+        chooseVideoBtn.classList.add('removed');
+    });
+
+    // Listen for any click/tap in the document to close settings if open and tap/click is outside #settings
+    document.addEventListener('mousedown', (e) => {
+        if (
+            !settingsDiv.classList.contains('removed') &&
+            !settingsDiv.contains(e.target) &&
+            e.target !== settingsBtn
+        ) {
+            settingsDiv.classList.add('removed');
+            settingsBtn.classList.remove('removed');
+            chooseVideoBtn.classList.remove('removed');
+        }
+    });
+    // For mobile/touch
+    document.addEventListener('touchstart', (e) => {
+        if (
+            !settingsDiv.classList.contains('removed') &&
+            !settingsDiv.contains(e.target) &&
+            e.target !== settingsBtn
+        ) {
+            settingsDiv.classList.add('removed');
+            settingsBtn.classList.remove('removed');
+            chooseVideoBtn.classList.remove('removed');
+        }
+    }, { passive: true });
+}
+
 // ==================
 // State Variables
 // ==================

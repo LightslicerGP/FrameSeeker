@@ -12,6 +12,7 @@ A PWA (or possibly an actual app) that allows you to view and save frames of a v
 - [ ] Add fullscreen video button
 - [ ] Add keyboard shortcut help button
 - [ ] 2x speed button?
+- [ ] fix seekbar progfression part to exist, doesnt rn
 
 ## Keyboard Shortcuts
 
