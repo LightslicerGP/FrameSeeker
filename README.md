@@ -2,6 +2,8 @@
 
 A PWA (or possibly an actual app) that allows you to view and save frames of a video.
 
+> **Side note:** Some features are Chrome only—sorry! I tried.
+
 ## To Do
 
 - [x] Hide seekbar (+ mabye controlls) when unfocused/tapped out of
@@ -16,13 +18,13 @@ A PWA (or possibly an actual app) that allows you to view and save frames of a v
 
 ## Keyboard Shortcuts
 
+- [x] w: Set Framerate
+- [x] a: Back 1 Frame
+- [x] s: Capture Frame
+- [x] d: Forward 1 Frame
 - [x] q: Back 15s
 - [x] e: Forward 15s
 - [x] z: Back 5s
-- [x] c: Forward 5s
-- [x] a: Back 1 Frame
-- [x] d: Forward 1 Frame
-- [x] Space: Play/Pause
-- [x] s: Capture Frame
-- [x] w: Set Framerate
 - [x] x: Jump To Frame
+- [x] c: Forward 5s
+- [x] Space: Play/Pause

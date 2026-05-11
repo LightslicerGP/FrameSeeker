@@ -230,7 +230,12 @@ svg {
 }
 
 #popupOverlay {
-    display: none;
+    display: flex;
+    position: absolute;
+    visibility: hidden;
+    pointer-events: none;
+    opacity: 0;
+
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
@@ -241,7 +246,10 @@ svg {
 }
 
 #popupOverlay.active {
-    display: flex;
+    position: static;
+    visibility: visible;
+    pointer-events: auto;
+    opacity: 1;
 }
 
 #popupLabel {
@@ -269,11 +277,11 @@ svg {
     /* 8px from the .button class */
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 
 .settings-item {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
 }

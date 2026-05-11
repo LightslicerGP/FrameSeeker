@@ -28,10 +28,44 @@ const popupLabel = document.getElementById('popupLabel');
 const popupInput = document.getElementById('popupValue');
 const leftSection = document.querySelector('#controls > #top > .left');
 const saveFrameBtn = document.getElementById('saveFrameBtn');
-
-// --- Settings Button/Panel Custom Logic ---
 const settingsBtn = document.getElementById('settings-btn');
 const settingsDiv = document.getElementById('settings');
+
+// ==================
+// IndexedDB Handle Storage (To remember the Save Folder)
+// ==================
+async function getDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open('FrameSeekerAppDB', 1);
+        req.onupgradeneeded = e => e.target.result.createObjectStore('settings');
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror = e => reject(e.target.error);
+    });
+}
+
+async function storeDirHandle(handle) {
+    try {
+        const db = await getDB();
+        const tx = db.transaction('settings', 'readwrite');
+        tx.objectStore('settings').put(handle, 'saveDirectory');
+    } catch (e) {
+        console.error("Could not save directory to IndexedDB", e);
+    }
+}
+
+async function loadDirHandle() {
+    try {
+        const db = await getDB();
+        return new Promise((resolve) => {
+            const tx = db.transaction('settings', 'readonly');
+            const req = tx.objectStore('settings').get('saveDirectory');
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+        });
+    } catch (e) {
+        return null;
+    }
+}
 
 if (settingsBtn && settingsDiv && chooseVideoBtn) {
     settingsBtn.addEventListener('click', (e) => {
@@ -40,6 +74,48 @@ if (settingsBtn && settingsDiv && chooseVideoBtn) {
         settingsDiv.classList.remove('removed');
         chooseVideoBtn.classList.add('removed');
     });
+
+    // Wire up the individual settings options
+    const settingsItems = document.querySelectorAll('.settings-item');
+    if (settingsItems.length >= 3) {
+        const saveToBtn = settingsItems[0];
+        const controlsBtn = settingsItems[1]; // Ready for future keyboard shortcut mapping
+        const fullscreenBtn = settingsItems[2];
+
+        // 1. "Save To..." Logic
+        saveToBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            // Close menu
+            settingsDiv.classList.add('removed');
+            settingsBtn.classList.remove('removed');
+            chooseVideoBtn.classList.remove('removed');
+
+            // Force request a new directory
+            const handle = await requestSaveDirectory();
+            if (handle) {
+                saveDirHandle = handle;
+                await storeDirHandle(handle);
+                if (debug) console.log("New save directory selected and stored in IndexedDB.");
+            }
+        });
+
+        // 2. Fullscreen Logic
+        fullscreenBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Close menu
+            settingsDiv.classList.add('removed');
+            settingsBtn.classList.remove('removed');
+            chooseVideoBtn.classList.remove('removed');
+
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error("Error attempting to enable fullscreen:", err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+    }
 
     // Listen for any click/tap in the document to close settings if open and tap/click is outside #settings
     document.addEventListener('mousedown', (e) => {
@@ -53,7 +129,7 @@ if (settingsBtn && settingsDiv && chooseVideoBtn) {
             chooseVideoBtn.classList.remove('removed');
         }
     });
-    // For mobile/touch
+
     document.addEventListener('touchstart', (e) => {
         if (
             !settingsDiv.classList.contains('removed') &&
@@ -243,110 +319,59 @@ function getCaptureFileName() {
 // ---- Directory picker helpers for saving image if supported ----
 
 async function requestSaveDirectory() {
-    if (debug) console.log("==== [requestSaveDirectory] ====");
     if (!window.showDirectoryPicker) {
-        console.error("showDirectoryPicker is not available in this environment.");
-        if (debug) console.log("Cannot use directory picker! Returning null.");
+        console.error("showDirectoryPicker is not available.");
         return null;
     }
     try {
-        if (debug) console.log("Calling showDirectoryPicker... (user should see a picker now)");
         const handle = await window.showDirectoryPicker({ startIn: "pictures" });
-        if (debug) console.log("Got directory handle:", handle);
-
-        if (debug) console.log("Requesting readwrite permissions for chosen directory...");
         const perm = await handle.requestPermission({ mode: "readwrite" });
-        if (debug) console.log("Permission result:", perm);
-
         if (perm === "granted") {
-            if (debug) console.log("Permission granted! Storing handle in saveDirHandle and returning handle...");
-            saveDirHandle = handle;
             return handle;
-        } else {
-            console.error("Permission to write to directory was not granted.");
-            if (debug) console.log("Permission was:", perm, "Returning null.");
         }
     } catch (e) {
-        // user may cancel
-        console.error("Error while requesting directory:", e);
-        if (debug) console.log("Directory picker threw an error, possibly user cancellation.");
+        console.error("User cancelled or error requesting directory:", e);
     }
-    if (debug) console.log("Returning null, could not obtain directory handle.");
     return null;
 }
 
 async function ensureSaveDirectory() {
-    if (debug) console.log("==== [ensureSaveDirectory] ====");
+    // ONLY check existing handle. We do not prompt for a new folder here.
     if (saveDirHandle) {
-        if (debug) console.log("saveDirHandle already exists:", saveDirHandle);
         try {
-            if (debug) console.log("Querying permission for saveDirHandle...");
-            const perm = await saveDirHandle.queryPermission({ mode: "readwrite" });
-            if (debug) console.log("Permission for saveDirHandle is:", perm);
+            let perm = await saveDirHandle.queryPermission({ mode: "readwrite" });
+            if (perm === "prompt") {
+                // If returning to the app, the browser requires the user to re-grant write access
+                perm = await saveDirHandle.requestPermission({ mode: "readwrite" });
+            }
             if (perm === "granted") {
-                if (debug) console.log("Permission granted for existing saveDirHandle! Returning saveDirHandle.");
                 return saveDirHandle;
             } else {
-                console.error("Permission for existing saveDirHandle was not granted.");
-                if (debug) console.log("Permission for handle was:", perm, "Will fall through to request a new handle.");
+                console.warn("Permission for the saved directory was denied. Falling back to default download.");
             }
         } catch (e) {
-            console.error("Error querying permission for saveDirHandle:", e);
-            if (debug) console.log("Exception thrown when checking permission on saveDirHandle, will request new one.");
+            console.error("Error verifying directory permission:", e);
         }
-    } else {
-        if (debug) console.log("No saveDirHandle exists yet.");
     }
-    // No valid handle, so we request one
-    if (debug) console.log("Requesting new save directory...");
-    const result = await requestSaveDirectory();
-    if (result) {
-        if (debug) console.log("New save directory obtained!", result);
-    } else {
-        if (debug) console.log("Failed to get a new save directory.");
-    }
-    return result;
+    // No saved directory or permission was denied. Trigger fallback.
+    return null;
 }
 
 async function saveBlobToDir(filename, blob) {
-    if (debug) console.log("==== [saveBlobToDir] ====");
-    if (debug) console.log("Filename to save:", filename);
-    if (debug) console.log("Blob info:", blob);
     const dir = await ensureSaveDirectory();
     if (!dir) {
-        console.error("Failed to obtain save directory (user may have cancelled or permission denied).");
-        if (debug) console.log("Aborting saveBlobToDir due to missing directory.");
-        return false;
+        return false; // Returns false so the saveFrameBtn listener triggers the standard <a> download
     }
     try {
-        if (debug) console.log("Calling getFileHandle for:", filename);
         const fileHandle = await dir.getFileHandle(filename, { create: true });
-        if (!fileHandle) {
-            console.error("Failed to get file handle for", filename);
-            if (debug) console.log("File handle is falsy, aborting save.");
-            return false;
-        }
-        if (debug) console.log("File handle obtained:", fileHandle);
-
-        if (debug) console.log("Creating writable stream for file...");
         const writable = await fileHandle.createWritable();
-        if (!writable) {
-            console.error("Failed to create writable stream for", filename);
-            if (debug) console.log("Writable stream is falsy, aborting save.");
-            return false;
-        }
-        if (debug) console.log("Writable stream obtained! Attempting to write blob...");
         await writable.write(blob);
-        if (debug) console.log("Write to file successful! Closing writable stream...");
         await writable.close();
-        if (debug) console.log("Writable stream closed. Save process complete.");
         return true;
     } catch (e) {
-        console.error("Error saving blob to directory:", e);
-        if (debug) console.log("Exception occurred while saving blob to", filename);
+        console.error("Error saving blob directly to directory:", e);
+        return false;
     }
-    if (debug) console.log("Returning false from saveBlobToDir because of an error.");
-    return false;
 }
 
 saveFrameBtn.addEventListener('click', async function (e) {
@@ -762,10 +787,6 @@ timestampSelectorBtn.addEventListener('click', (e) => {
 });
 
 function showPopup(mode) {
-    popupOverlay.dataset.mode = mode;
-    popupOverlay.classList.add('active');
-    buttons.classList.add('removed');
-
     if (mode === 'framerate') {
         popupLabel.textContent = 'Select Framerate:';
         popupInput.type = 'number';
@@ -779,6 +800,10 @@ function showPopup(mode) {
         popupInput.min = '0';
         popupInput.value = getCurrentFrameNumber();
     }
+
+    popupOverlay.dataset.mode = mode;
+    popupOverlay.classList.add('active');
+    buttons.classList.add('removed');
 
     popupInput.focus();
     popupInput.select();
@@ -825,7 +850,9 @@ popupOverlay.addEventListener('click', (e) => {
 // ==================
 // DOMContentLoaded Initialization
 // ==================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Retrieve the saved directory handle from IndexedDB
+    saveDirHandle = await loadDirHandle();
     // ---- File Input and Choose Handler
     fileInput = document.createElement('input');
     fileInput.type = 'file';
