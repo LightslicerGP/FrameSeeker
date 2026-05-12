@@ -12,9 +12,12 @@ A PWA (or possibly an actual app) that allows you to view and save frames of a v
 - [x] Fix frame number so its z-spaced based on video length
 - [x] Add keyboard shortcuts for navigation?
 - [x] Add fullscreen video button
+- [x] Add framerate to the icon
 - [ ] Add keyboard shortcut help button
 - [ ] 2x speed button?
-- [ ] fix seekbar progfression part to exist, doesnt rn
+- [ ] Fix seekbar progfression part to exist, doesnt rn
+- [ ] Add preset framerates
+- [ ] Add specific frame history
 
 ## Keyboard Shortcuts
 

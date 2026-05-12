@@ -30,6 +30,7 @@ const leftSection = document.querySelector('#controls > #top > .left');
 const saveFrameBtn = document.getElementById('saveFrameBtn');
 const settingsBtn = document.getElementById('settings-btn');
 const settingsDiv = document.getElementById('settings');
+const framerateTextDisplay = document.getElementById('framerateText');
 
 // ==================
 // IndexedDB Handle Storage (To remember the Save Folder)
@@ -751,6 +752,7 @@ popupInput.addEventListener('input', () => {
     if (mode === 'framerate') {
         if (!isNaN(val) && val > 0) {
             selectedFramerate = val;
+            updateFramerateIconUI();
             if (debug) console.log('Framerate changed live:', selectedFramerate);
         }
     }
@@ -774,6 +776,12 @@ popupInput.addEventListener('keydown', (e) => {
         popupInput.blur();
     }
 });
+
+function updateFramerateIconUI() {
+    if (framerateTextDisplay) {
+        framerateTextDisplay.textContent = selectedFramerate;
+    }
+}
 
 framerateSelectorBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -821,6 +829,7 @@ function hidePopup() {
         if (!isNaN(value) && value > 0) {
             selectedFramerate = value;
             localStorage.setItem('selectedFramerate', value);
+            updateFramerateIconUI();
             if (debug) console.log('Framerate saved:', value);
         }
     }
@@ -1062,6 +1071,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!isNaN(savedRate) && savedRate > 0) {
         selectedFramerate = savedRate;
     }
+    updateFramerateIconUI();
 
     // Only start auto-hide if popup is not open
     if (isControlsVisible() && !popupOverlay.classList.contains('active')) {

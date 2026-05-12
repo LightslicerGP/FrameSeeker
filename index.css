@@ -1,11 +1,91 @@
 @font-face {
     font-family: "San Fransisco";
+    src: url("Fonts/SF-Pro-Display-Ultralight.otf");
+    font-weight: 100;
+}
+
+@font-face {
+    font-family: "San Fransisco";
+    src: url("Fonts/SF-Pro-Display-Thin.otf");
+    font-weight: 200;
+}
+
+@font-face {
+    font-family: "San Fransisco";
+    src: url("Fonts/SF-Pro-Display-Light.otf");
+    font-weight: 300;
+}
+
+@font-face {
+    font-family: "San Fransisco";
     src: url("Fonts/SF-Pro-Display-Regular.otf");
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "San Fransisco";
+    src: url("Fonts/SF-Pro-Display-Medium.otf");
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: "San Fransisco";
+    src: url("Fonts/SF-Pro-Display-Semibold.otf");
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: "San Fransisco";
+    src: url("Fonts/SF-Pro-Display-Bold.otf");
+    font-weight: 700;
+}
+
+@font-face {
+    font-family: "San Fransisco";
+    src: url("Fonts/SF-Pro-Display-Heavy.otf");
+    font-weight: 800;
+}
+
+@font-face {
+    font-family: "San Fransisco";
+    src: url("Fonts/SF-Pro-Display-Black.otf");
+    font-weight: 900;
+}
+
+@font-face {
+    font-family: "San Fransisco Mono";
+    src: url("Fonts/SFMono-Light.otf");
+    font-weight: 300;
 }
 
 @font-face {
     font-family: "San Fransisco Mono";
     src: url("Fonts/SFMono-Regular.otf");
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "San Fransisco Mono";
+    src: url("Fonts/SFMono-Medium.otf");
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: "San Fransisco Mono";
+    src: url("Fonts/SFMono-Semibold.otf");
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: "San Fransisco Mono";
+    src: url("Fonts/SFMono-Bold.otf");
+    font-weight: 700;
+}
+
+@font-face {
+    font-family: "San Fransisco Mono";
+    src: url("Fonts/SFMono-Heavy.otf");
+    font-weight: 800;
 }
 
 * {
@@ -268,6 +348,12 @@ svg {
     font-family: "San Fransisco Mono", monospace;
 }
 
+#popupValue::-webkit-outer-spin-button,
+#popupValue::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 #popupValue:focus {
     outline: none;
 }
@@ -284,4 +370,12 @@ svg {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+#framerateSelectorBtn>text {
+    font-family: "San Fransisco Mono", sans-serif;
+    font-size: 12px;
+    stroke: none;
+    font-weight: 600;
+    user-select: none;
 }
