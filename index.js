@@ -76,22 +76,17 @@ if (settingsBtn && settingsDiv && chooseVideoBtn) {
         chooseVideoBtn.classList.add('removed');
     });
 
-    // Wire up the individual settings options
     const settingsItems = document.querySelectorAll('.settings-item');
     if (settingsItems.length >= 3) {
         const saveToBtn = settingsItems[0];
-        const controlsBtn = settingsItems[1]; // Ready for future keyboard shortcut mapping
+        const controlsBtn = settingsItems[1];
         const fullscreenBtn = settingsItems[2];
 
-        // 1. "Save To..." Logic
         saveToBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            // Close menu
             settingsDiv.classList.add('removed');
             settingsBtn.classList.remove('removed');
             chooseVideoBtn.classList.remove('removed');
-
-            // Force request a new directory
             const handle = await requestSaveDirectory();
             if (handle) {
                 saveDirHandle = handle;
@@ -100,10 +95,8 @@ if (settingsBtn && settingsDiv && chooseVideoBtn) {
             }
         });
 
-        // 2. Fullscreen Logic
         fullscreenBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            // Close menu
             settingsDiv.classList.add('removed');
             settingsBtn.classList.remove('removed');
             chooseVideoBtn.classList.remove('removed');
@@ -118,7 +111,6 @@ if (settingsBtn && settingsDiv && chooseVideoBtn) {
         });
     }
 
-    // Listen for any click/tap in the document to close settings if open and tap/click is outside #settings
     document.addEventListener('mousedown', (e) => {
         if (
             !settingsDiv.classList.contains('removed') &&
@@ -149,22 +141,19 @@ if (settingsBtn && settingsDiv && chooseVideoBtn) {
 // ==================
 let fileInput = null;
 let isSeeking = false;
-let selectedFramerate = 30; // Default value
+let selectedFramerate = 30;
 let popupJustOpened = false;
 
-// For directory picker support
 let saveDirHandle = null;
 
-// --- NEW: Resume video currentTime after file load, if requested by resumePrompt
 let _pendingResumeCurrentTime = null;
 
-// --- AUTO-HIDE CONTROLS state ---
 let controlsAutoHideTimer = null;
 const AUTOHIDE_DELAY = 3000;
 function isControlsVisible() {
     return (
-        controls && !controls.classList.contains('hidden') ||
-        playbackControls && !playbackControls.classList.contains('hidden')
+        controls && !controls.classList.contains('transparent') ||
+        playbackControls && !playbackControls.classList.contains('transparent')
     );
 }
 function clearControlsAutoHideTimer() {
@@ -178,16 +167,14 @@ function scheduleControlsAutoHide() {
     if (popupOverlay.classList.contains('active')) return;
     if (!isControlsVisible()) return;
     controlsAutoHideTimer = setTimeout(() => {
-        // Only run the hideUI if the popup is not open
         if (isControlsVisible() && !popupOverlay.classList.contains('active')) {
-            if (controls && !controls.classList.contains('hidden')) controls.classList.add('hidden');
-            if (playbackControls && !playbackControls.classList.contains('hidden')) playbackControls.classList.add('hidden');
+            if (controls && !controls.classList.contains('transparent')) controls.classList.add('transparent');
+            if (playbackControls && !playbackControls.classList.contains('transparent')) playbackControls.classList.add('transparent');
             clearControlsAutoHideTimer();
         }
     }, AUTOHIDE_DELAY);
 }
 function resetControlsAutoHide() {
-    // Only run hide logic if popup is not open
     if (isControlsVisible() && !popupOverlay.classList.contains('active')) {
         scheduleControlsAutoHide();
     } else {
@@ -195,7 +182,6 @@ function resetControlsAutoHide() {
     }
 }
 
-// Helper to get current frame duration safely from framerate
 function getFrameDuration() {
     return selectedFramerate && selectedFramerate > 0 ? 1 / selectedFramerate : 1 / 30;
 }
@@ -259,9 +245,8 @@ function skipVideo(seconds) {
 }
 
 function toggleControls() {
-    controls.classList.toggle('hidden');
-    playbackControls.classList.toggle('hidden');
-    // Only run hide UI if popup is not open
+    controls.classList.toggle('transparent');
+    playbackControls.classList.toggle('transparent');
     if (isControlsVisible() && !popupOverlay.classList.contains('active')) {
         scheduleControlsAutoHide();
     } else {
@@ -270,7 +255,6 @@ function toggleControls() {
     if (debug) console.log('toggleControls called');
 }
 
-// --- NEW: Utility for 'Jump to Frame'
 function getCurrentFrameNumber() {
     if (!video) return 0;
     return Math.floor(video.currentTime * selectedFramerate);
@@ -279,9 +263,9 @@ function getTimeForFrame(frameNumber) {
     return Math.max(0, frameNumber / selectedFramerate);
 }
 
-// =======
+// ==================
 // SAVE FRAME/CAPTURE BUTTON LOGIC (MODIFIED PADDING)
-// =======
+// ==================
 
 function getFramePaddingLength() {
     if (video && video.duration && selectedFramerate) {
@@ -317,7 +301,9 @@ function getCaptureFileName() {
     return `${base}-Frame${framePortion}-FrameSeeker.png`;
 }
 
-// ---- Directory picker helpers for saving image if supported ----
+// ==================
+// Directory picker helpers for saving image if supported
+// ==================
 
 async function requestSaveDirectory() {
     if (!window.showDirectoryPicker) {
@@ -337,12 +323,10 @@ async function requestSaveDirectory() {
 }
 
 async function ensureSaveDirectory() {
-    // ONLY check existing handle. We do not prompt for a new folder here.
     if (saveDirHandle) {
         try {
             let perm = await saveDirHandle.queryPermission({ mode: "readwrite" });
             if (perm === "prompt") {
-                // If returning to the app, the browser requires the user to re-grant write access
                 perm = await saveDirHandle.requestPermission({ mode: "readwrite" });
             }
             if (perm === "granted") {
@@ -354,14 +338,13 @@ async function ensureSaveDirectory() {
             console.error("Error verifying directory permission:", e);
         }
     }
-    // No saved directory or permission was denied. Trigger fallback.
     return null;
 }
 
 async function saveBlobToDir(filename, blob) {
     const dir = await ensureSaveDirectory();
     if (!dir) {
-        return false; // Returns false so the saveFrameBtn listener triggers the standard <a> download
+        return false;
     }
     try {
         const fileHandle = await dir.getFileHandle(filename, { create: true });
@@ -395,7 +378,6 @@ saveFrameBtn.addEventListener('click', async function (e) {
         if (!blob) return;
         const saved = await saveBlobToDir(filename, blob);
         if (!saved) {
-            // fallback to download if user cancels or permission fails
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.classList.add('removed');
@@ -409,7 +391,6 @@ saveFrameBtn.addEventListener('click', async function (e) {
             }, 100);
         }
     } else {
-        // fallback, just download
         canvas.toBlob(function (blob) {
             if (!blob) return;
             const url = URL.createObjectURL(blob);
@@ -445,7 +426,6 @@ const pauseSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fi
 // Main Event Listeners
 // ==================
 
-// ---- Seekbar Listeners
 if (seekbarSlider) {
     seekbarSlider.addEventListener('input', () => {
         isSeeking = true;
@@ -455,7 +435,6 @@ if (seekbarSlider) {
             const useHours = video.duration >= 3600;
             currentTimeDisplay.textContent = formatTime(seekTime, useHours);
         }
-        // Only run hide logic if popup is not open
         resetControlsAutoHide();
         if (debug) console.log('seekbarSlider input');
     });
@@ -486,7 +465,6 @@ if (seekbarSlider) {
     });
 }
 
-// ---- Video Event Listeners for Seekbar/State
 if (video) {
     video.addEventListener('loadedmetadata', updateSeekbar);
     video.addEventListener('loadedmetadata', updateTotalTimeDisplay);
@@ -506,7 +484,6 @@ if (video) {
     });
 }
 
-// ---- Play/Pause and Skip Controls
 playpauseBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (!video || !video.src) return;
@@ -521,7 +498,6 @@ playpauseBtn.addEventListener('click', (e) => {
 });
 video.addEventListener('play', () => {
     updatePlayPauseIcon();
-    // Only run hide UI if popup is not open
     if (!popupOverlay.classList.contains('active')) {
         scheduleControlsAutoHide();
     }
@@ -529,7 +505,6 @@ video.addEventListener('play', () => {
 });
 video.addEventListener('pause', () => {
     updatePlayPauseIcon();
-    // Only run hide UI if popup is not open
     if (!popupOverlay.classList.contains('active')) {
         scheduleControlsAutoHide();
     }
@@ -579,10 +554,8 @@ document.querySelectorAll('.button').forEach(button => {
     });
 });
 
-// ---- Controls Visibility (Overlay toggle)
 video.addEventListener('click', () => {
     toggleControls();
-    // Only run hide UI if popup is not open
     if (isControlsVisible() && !popupOverlay.classList.contains('active')) {
         scheduleControlsAutoHide();
     }
@@ -607,7 +580,6 @@ playbackControls.addEventListener('click', (e) => {
     }
 });
 document.body.addEventListener('click', (e) => {
-    // Handle resumePrompt closing
     const resumeDiv = document.getElementById('resumePrompt');
     if (resumeDiv) {
         const clickedInsideResume = resumeDiv.contains(e.target);
@@ -616,7 +588,6 @@ document.body.addEventListener('click', (e) => {
             showResumeBlockBtns();
             resetControlsAutoHide();
             if (debug) console.log('resumePrompt closed by body click outside');
-            // Don't run any further logic if the resumePrompt was open and now closed
             return;
         }
     }
@@ -640,8 +611,6 @@ document.body.addEventListener('click', (e) => {
     }
 });
 
-// Detect user *activity* (for touch/click/move) to restart timer
-// Only reset auto-hide if popup is not open
 document.addEventListener('mousemove', () => {
     if (!popupOverlay.classList.contains('active')) resetControlsAutoHide();
 }, { passive: true });
@@ -657,15 +626,13 @@ document.addEventListener('keydown', () => {
 // ==================
 // README mappings (q=-15s, e=+15s, z=-5s, c=+5s, a=-frame, d=+frame, space=play/pause, s=capture, w=set framerate, x=jump to frame)
 document.addEventListener('keydown', function (e) {
-    if (popupOverlay.classList.contains('active')) return; // Do not intercept if popup open
-    // Ignore keyboard on inputs/textareas except when popup
+    if (popupOverlay.classList.contains('active')) return;
     const tag = e.target.tagName.toLowerCase();
     if ((tag === 'input' || tag === 'textarea') && !e.target.classList.contains('allow-hotkey')) return;
 
     switch (e.key) {
         case ' ':
-        case 'Spacebar': // old Firefox
-            // Play/Pause
+        case 'Spacebar':
             e.preventDefault();
             if (!video || !video.src) return;
             if (video.paused) {
@@ -678,49 +645,42 @@ document.addEventListener('keydown', function (e) {
             break;
         case 'q':
         case 'Q':
-            // Back 15s
             e.preventDefault();
             skipVideo(-15);
             resetControlsAutoHide();
             break;
         case 'e':
         case 'E':
-            // Forward 15s
             e.preventDefault();
             skipVideo(15);
             resetControlsAutoHide();
             break;
         case 'z':
         case 'Z':
-            // Back 5s
             e.preventDefault();
             skipVideo(-5);
             resetControlsAutoHide();
             break;
         case 'c':
         case 'C':
-            // Forward 5s
             e.preventDefault();
             skipVideo(5);
             resetControlsAutoHide();
             break;
         case 'a':
         case 'A':
-            // Back 1 Frame
             e.preventDefault();
             skipVideo(-getFrameDuration());
             resetControlsAutoHide();
             break;
         case 'd':
         case 'D':
-            // Forward 1 Frame
             e.preventDefault();
             skipVideo(getFrameDuration());
             resetControlsAutoHide();
             break;
         case 's':
         case 'S':
-            // Capture Frame
             e.preventDefault();
             if (saveFrameBtn) {
                 saveFrameBtn.click();
@@ -729,22 +689,21 @@ document.addEventListener('keydown', function (e) {
             break;
         case 'w':
         case 'W':
-            // Set Framerate (open popup)
             e.preventDefault();
             showPopup('framerate');
             break;
         case 'x':
         case 'X':
-            // Jump to Frame (open popup)
             e.preventDefault();
             showPopup('timestamp');
             break;
     }
 });
 
-// ---- Popup Overlay
+// ==================
+// Popup Overlay
+// ==================
 
-// --- Update framerate on framerate box input
 popupInput.addEventListener('input', () => {
     const mode = popupOverlay.dataset.mode;
     const val = parseFloat(popupInput.value);
@@ -845,7 +804,6 @@ function hidePopup() {
     popupOverlay.dataset.mode = '';
     buttons.classList.remove('removed');
 
-    // Only start auto-hide if popup is not now open
     if (!popupOverlay.classList.contains('active')) {
         scheduleControlsAutoHide();
     }
@@ -860,9 +818,7 @@ popupOverlay.addEventListener('click', (e) => {
 // DOMContentLoaded Initialization
 // ==================
 document.addEventListener('DOMContentLoaded', async () => {
-    // Retrieve the saved directory handle from IndexedDB
     saveDirHandle = await loadDirHandle();
-    // ---- File Input and Choose Handler
     fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'video/*,.mkv';
@@ -880,16 +836,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (debug) console.log('chooseVideoBtn clicked');
     });
 
-    // -- PATCH RESUME --
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        // When resuming after prompt, load previous time if needed
         loadVideoFile(file, _pendingResumeCurrentTime);
         _pendingResumeCurrentTime = null;
     });
 
-    // ---- Resume Prompt after load
     if (!blurLayer || !video) return;
 
     const isShareTarget = new URLSearchParams(window.location.search).has('share_target');
@@ -976,7 +929,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         hideResumeBlockBtns();
 
         yesButton.addEventListener('click', () => {
-            // Store the previous place in _pendingResumeCurrentTime to pass to loadVideoFile
             _pendingResumeCurrentTime = (
                 savedState && typeof savedState.currentTime === "number"
                     ? savedState.currentTime
@@ -1001,7 +953,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // ---- Blur Layer/Canvas Setup
     const ctx = blurLayer.getContext('2d');
     function resizeCanvas() {
         blurLayer.width = window.innerWidth;
@@ -1073,14 +1024,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     updateFramerateIconUI();
 
-    // Only start auto-hide if popup is not open
     if (isControlsVisible() && !popupOverlay.classList.contains('active')) {
         scheduleControlsAutoHide();
     }
 });
 
-
-// Modified loadVideoFile: optionally restore to a previous time (for resume)
 function loadVideoFile(file, resumeCurrentTime) {
     if (debug) console.log("Loading file:", file.name, "Type:", file.type, "Size:", file.size);
 
@@ -1090,13 +1038,10 @@ function loadVideoFile(file, resumeCurrentTime) {
     video.dataset.lastModified = file.lastModified;
 
     video.src = url;
-    video.load(); // Force the video element to acknowledge the new source
+    video.load();
 
-    // If resumeCurrentTime provided, seek after metadata loaded
     if (typeof resumeCurrentTime === "number" && resumeCurrentTime > 0) {
-        // Seek only after loadedmetadata, remove our temporary event after
         const handleLoadedMetadata = () => {
-            // Clamp time to video duration just in case
             let seekTo = Math.max(0, Math.min(resumeCurrentTime, video.duration || resumeCurrentTime));
             video.currentTime = seekTo;
             video.removeEventListener('loadedmetadata', handleLoadedMetadata);
@@ -1107,14 +1052,12 @@ function loadVideoFile(file, resumeCurrentTime) {
         video.currentTime = 0;
     }
 
-    // Save state
     localStorage.setItem('videoState', JSON.stringify({
         currentTime: typeof resumeCurrentTime === "number" && resumeCurrentTime > 0 ? resumeCurrentTime : 0,
         name: file.name,
         lastModified: file.lastModified
     }));
 
-    // Update Play/Pause Icon safely
     if (typeof updatePlayPauseIcon === "function") {
         updatePlayPauseIcon();
     }

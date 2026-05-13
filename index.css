@@ -89,21 +89,11 @@
 }
 
 * {
-    border: 0;
     font-family: "San Fransisco", inter;
     color: #ffffff;
 }
 
-.hidden {
-    opacity: 0 !important;
-}
-
-.removed {
-    display: none !important;
-}
-
 body {
-    background: #000000;
     overflow: hidden;
 }
 
