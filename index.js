@@ -898,7 +898,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (savedState && savedState.name && !isShareTarget) {
         const resumeDiv = document.createElement('div');
-        resumeDiv.className = 'glassy';
+        resumeDiv.className = 'glassy clearer';
         resumeDiv.id = 'resumePrompt';
 
         const textEl = document.createElement('p');

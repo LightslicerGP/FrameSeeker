@@ -89,11 +89,8 @@
 }
 
 * {
-    margin: 0;
     border: 0;
-    padding: 0;
     font-family: "San Fransisco", inter;
-    -webkit-tap-highlight-color: transparent;
     color: #ffffff;
 }
 
@@ -135,17 +132,6 @@ svg {
     width: 32px;
     height: 32px;
     stroke: #ffffff;
-}
-
-.glassy {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(16px);
-    transition: background 0.1s ease-in-out;
-    border-radius: 32px;
-}
-
-.glassy:active {
-    background: rgba(255, 255, 255, 0.35);
 }
 
 .button {

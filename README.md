@@ -18,6 +18,7 @@ A PWA (or possibly an actual app) that allows you to view and save frames of a v
 - [ ] Fix seekbar progfression part to exist, doesnt rn
 - [ ] Add preset framerates
 - [ ] Add specific frame history
+- [ ] Add toasts whenever a keybind is pressed
 
 ## Keyboard Shortcuts
 
