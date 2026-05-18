@@ -247,8 +247,14 @@ svg {
     position: relative;
     flex: 1;
     height: 12px;
-    border-radius: 6px;
+}
+
+.slider-bg {
+    position: absolute;
+    inset: 0;
     background: rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+    pointer-events: none;
 }
 
 .slider-fill {
@@ -280,11 +286,12 @@ svg {
     appearance: none;
     width: 32px;
     height: 24px;
-    border-radius: 50%;
-    background: rgba(0, 128, 255, 1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.25);
+    margin-top: -6px;
     opacity: 0;
     transition: opacity 0.1s ease;
-    top: 50%;
+    cursor: pointer;
 }
 
 #seekbarSlider:active::-webkit-slider-thumb {
@@ -308,10 +315,12 @@ svg {
 #seekbarSlider::-moz-range-thumb {
     width: 32px;
     height: 24px;
-    border-radius: 50%;
-    background: rgba(0, 128, 255, 1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.25);
+    border: none;
     opacity: 0;
     transition: opacity 0.1s ease;
+    cursor: pointer;
 }
 
 #seekbarSlider:active::-moz-range-thumb {
