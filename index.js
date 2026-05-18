@@ -217,7 +217,9 @@ function updateSeekbar() {
     const currentTime = video.currentTime;
     const duration = video.duration;
     const useHours = duration >= 3600;
-    seekbarSlider.value = (currentTime / duration) * 100;
+    const ratio = currentTime / duration;
+    seekbarSlider.value = ratio * 100;
+    seekbarSlider.style.setProperty('--progress-ratio', ratio);
     currentTimeDisplay.textContent = formatTime(currentTime, useHours);
     totalTimeDisplay.textContent = formatTime(duration, useHours);
 }
@@ -430,7 +432,10 @@ if (seekbarSlider) {
     seekbarSlider.addEventListener('input', () => {
         isSeeking = true;
         if (video && video.duration) {
-            const seekTime = (seekbarSlider.value / 100) * video.duration;
+            const val = seekbarSlider.value;
+            const ratio = val / 100;
+            seekbarSlider.parentElement.style.setProperty('--progress-ratio', ratio);
+            const seekTime = ratio * video.duration;
             video.currentTime = seekTime;
             const useHours = video.duration >= 3600;
             currentTimeDisplay.textContent = formatTime(seekTime, useHours);
