@@ -93,7 +93,9 @@
     color: #ffffff;
 }
 
-body {
+body,
+html,
+#controls {
     overflow: hidden;
 }
 
@@ -238,6 +240,7 @@ svg {
 
 .seekbar span {
     font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
     font-variant-numeric: tabular-nums;
     text-align: center;
     font-family: "San Fransisco Mono", monospace;
@@ -280,6 +283,7 @@ svg {
     margin: 0;
     padding: 0;
     cursor: pointer;
+    touch-action: none;
 }
 
 #seekbarSlider::-webkit-slider-thumb {
@@ -288,7 +292,7 @@ svg {
     width: 48px;
     height: 32px;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.25);
+    /* background: rgba(255, 255, 255, 0.25); */
     margin-top: -10px;
     opacity: 0;
     transition: opacity 0.1s ease;
@@ -297,7 +301,13 @@ svg {
     -webkit-backdrop-filter: blur(2px);
 }
 
-#seekbarSlider:active::-webkit-slider-thumb {
+#seekbarSlider:active::-webkit-slider-thumb,
+#seekbarSlider.is-seeking::-webkit-slider-thumb {
+    opacity: 1;
+}
+
+#seekbarSlider:active::-moz-range-thumb,
+#seekbarSlider.is-seeking::-moz-range-thumb {
     opacity: 1;
 }
 
@@ -319,7 +329,7 @@ svg {
     width: 48px;
     height: 32px;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.25);
+    /* background: rgba(255, 255, 255, 0.25); */
     margin-top: -10px;
     border: none;
     opacity: 0;
@@ -393,6 +403,17 @@ svg {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.settings-item>svg {
+    width: 24px;
+}
+
+.settings-item>svg>text {
+    font-size: 12px;
+    font-family: "San Fransisco Mono", sans-serif;
+    /* font-weight: bold; */
+    user-select: none;
 }
 
 #framerateSelectorBtn>text {

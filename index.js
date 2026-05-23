@@ -31,6 +31,126 @@ const saveFrameBtn = document.getElementById('saveFrameBtn');
 const settingsBtn = document.getElementById('settings-btn');
 const settingsDiv = document.getElementById('settings');
 const framerateTextDisplay = document.getElementById('framerateText');
+const saveToBtn = document.getElementById('saveTo');
+const controlsHelpBtn = document.getElementById('controlsHelp');
+const fullscreenBtn = document.getElementById('fullscreen');
+const fillScreenBtn = document.getElementById('fillScreen');
+const speedBtn = document.getElementById('speed');
+
+// ============
+// FIT SCREEN & FILL SCREEN TOGGLE LOGIC
+// ============
+let isFillScreenActive = false;
+let isFitScreenActive = false;
+
+// Store original objectFit to restore it
+let originalVideoObjectFit = '';
+let originalVideoPosition = '';
+let originalVideoWidth = '';
+let originalVideoHeight = '';
+let originalVideoLeft = '';
+let originalVideoTop = '';
+let originalVideoTransform = '';
+let originalVideoZ = '';
+let originalFillScreenInnerHTML = '';
+let originalFitScreenInnerHTML = '';
+
+// Fit screen button SVG + label from index.html lines 209-216
+const fitScreenInnerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+        <path d="M5 9l4 0l0 -4" /><path d="M3 3l6 6" />
+        <path d="M5 15l4 0l0 4" /><path d="M3 21l6 -6" />
+        <path d="M19 9l-4 0l0 -4" /><path d="M15 9l6 -6" />
+        <path d="M19 15l-4 0l0 4" /><path d="M15 15l6 6" />
+    </svg>
+    <p>Fit Screen</p>
+`;
+
+// Save the default innerHTML of the button for toggling back
+function cacheOriginalFillScreenInnerHTML() {
+    if (fillScreenBtn && !originalFillScreenInnerHTML) {
+        originalFillScreenInnerHTML = fillScreenBtn.innerHTML;
+    }
+}
+function cacheOriginalFitScreenInnerHTML() {
+    if (fillScreenBtn && !originalFitScreenInnerHTML) {
+        originalFitScreenInnerHTML = fitScreenInnerHTML;
+    }
+}
+
+// Toggle between fill screen and fit screen on clicking the button
+if (fillScreenBtn && video && blurLayer) {
+    cacheOriginalFillScreenInnerHTML();
+    fillScreenBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // If currently in fill screen, switch to fit screen
+        if (!isFitScreenActive && !isFillScreenActive) {
+            // ---- Enter "Fill Screen" mode ----
+            isFillScreenActive = true;
+            isFitScreenActive = false;
+
+            // Save original styles
+            originalVideoObjectFit = video.style.objectFit;
+            originalVideoPosition = video.style.position;
+            originalVideoWidth = video.style.width;
+            originalVideoHeight = video.style.height;
+            originalVideoLeft = video.style.left;
+            originalVideoTop = video.style.top;
+            originalVideoTransform = video.style.transform;
+            originalVideoZ = video.style.zIndex;
+
+            // Make video cover everything, cropping as needed
+            video.style.position = 'fixed';
+            video.style.top = '0';
+            video.style.left = '0';
+            video.style.width = '100vw';
+            video.style.height = '100vh';
+            video.style.objectFit = 'cover';
+            if (originalVideoZ) {
+                video.style.zIndex = originalVideoZ;
+            }
+
+            // Hide the blurLayer background to save GPU
+            blurLayer.style.display = 'none';
+
+            // Indicate mode
+            fillScreenBtn.classList.add('active');
+
+            // Change icon to "Fit Screen"
+            cacheOriginalFillScreenInnerHTML();
+            fillScreenBtn.innerHTML = fitScreenInnerHTML;
+
+            if (debug) console.log('Fill screen mode activated');
+        } else if (isFillScreenActive && !isFitScreenActive) {
+            // ---- Enter "Fit Screen" mode, restore video, change icon back ----
+            // Restore previous video style
+            video.style.objectFit = originalVideoObjectFit;
+            video.style.position = originalVideoPosition;
+            video.style.width = originalVideoWidth;
+            video.style.height = originalVideoHeight;
+            video.style.left = originalVideoLeft;
+            video.style.top = originalVideoTop;
+            video.style.transform = originalVideoTransform;
+            video.style.zIndex = originalVideoZ;
+
+            // Show the blurLayer again
+            blurLayer.style.display = '';
+
+            // Remove indication
+            fillScreenBtn.classList.remove('active');
+
+            // Restore the original icon 
+            fillScreenBtn.innerHTML = originalFillScreenInnerHTML;
+
+            // Reset state
+            isFillScreenActive = false;
+            isFitScreenActive = false;
+
+            if (debug) console.log('Fill screen mode deactivated');
+        }
+    });
+}
 
 // ==================
 // IndexedDB Handle Storage (To remember the Save Folder)
@@ -76,12 +196,7 @@ if (settingsBtn && settingsDiv && chooseVideoBtn) {
         chooseVideoBtn.classList.add('removed');
     });
 
-    const settingsItems = document.querySelectorAll('.settings-item');
-    if (settingsItems.length >= 3) {
-        const saveToBtn = settingsItems[0];
-        const controlsBtn = settingsItems[1];
-        const fullscreenBtn = settingsItems[2];
-
+    if (saveToBtn && fullscreenBtn) {
         saveToBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             settingsDiv.classList.add('removed');
@@ -219,7 +334,7 @@ function updateSeekbar() {
     const useHours = duration >= 3600;
     const ratio = currentTime / duration;
     seekbarSlider.value = ratio * 100;
-    seekbarSlider.style.setProperty('--progress-ratio', ratio);
+    seekbarSlider.parentElement.style.setProperty('--progress-ratio', ratio);
     currentTimeDisplay.textContent = formatTime(currentTime, useHours);
     totalTimeDisplay.textContent = formatTime(duration, useHours);
 }
@@ -424,6 +539,43 @@ const pauseSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fi
     <path d="M17 4h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h2a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2z" />
 </svg>`;
 
+// -- Video Speed Barrel Switch (SVG + behavior) --
+const speedSteps = [.5, 1, 2, 4];
+let currentSpeedIdx = 1;
+
+function getSpeedText(speed) {
+    return speed === 0.5 ? '.5x' : `${speed}x`;
+}
+
+function updateSpeedSVG() {
+    if (!speedBtn) return;
+    let svg = speedBtn.querySelector('svg');
+    const speedText = getSpeedText(speedSteps[currentSpeedIdx]);
+    if (!svg) {
+        speedBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <text x="12" y="12" text-anchor="middle" dominant-baseline="middle" fill="white">${speedText}</text>
+</svg>`;
+    } else {
+        let text = svg.querySelector('text');
+        if (!text) {
+            svg.innerHTML = `<text x="12" y="12" text-anchor="middle" dominant-baseline="middle" fill="white">${speedText}</text>`;
+        } else {
+            text.textContent = speedText;
+        }
+    }
+}
+
+if (speedBtn && video) {
+    updateSpeedSVG();
+    speedBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        currentSpeedIdx = (currentSpeedIdx + 1) % speedSteps.length;
+        video.playbackRate = speedSteps[currentSpeedIdx];
+        updateSpeedSVG();
+    });
+    video.addEventListener('ratechange', updateSpeedSVG);
+    video.playbackRate = speedSteps[currentSpeedIdx];
+}
 // ==================
 // Main Event Listeners
 // ==================
@@ -445,23 +597,32 @@ if (seekbarSlider) {
     });
     seekbarSlider.addEventListener('mousedown', () => {
         isSeeking = true;
+        seekbarSlider.classList.add('is-seeking');
         resetControlsAutoHide();
         if (debug) console.log('seekbarSlider mousedown');
     });
     seekbarSlider.addEventListener('mouseup', () => {
         isSeeking = false;
+        seekbarSlider.classList.remove('is-seeking');
         resetControlsAutoHide();
         if (debug) console.log('seekbarSlider mouseup');
     });
     seekbarSlider.addEventListener('touchstart', () => {
         isSeeking = true;
+        seekbarSlider.classList.add('is-seeking');
         resetControlsAutoHide();
         if (debug) console.log('seekbarSlider touchstart');
     });
     seekbarSlider.addEventListener('touchend', () => {
         isSeeking = false;
+        seekbarSlider.classList.remove('is-seeking');
         resetControlsAutoHide();
         if (debug) console.log('seekbarSlider touchend');
+    });
+    seekbarSlider.addEventListener('touchcancel', () => {
+        isSeeking = false;
+        seekbarSlider.classList.remove('is-seeking');
+        resetControlsAutoHide();
     });
     seekbarSlider.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -486,6 +647,9 @@ if (video) {
             lastModified: video.dataset.lastModified || '',
         };
         localStorage.setItem('videoState', JSON.stringify(videoState));
+    });
+    video.addEventListener('seeked', () => {
+        if (!isSeeking) updateSeekbar();
     });
 }
 
@@ -1049,6 +1213,7 @@ function loadVideoFile(file, resumeCurrentTime) {
         const handleLoadedMetadata = () => {
             let seekTo = Math.max(0, Math.min(resumeCurrentTime, video.duration || resumeCurrentTime));
             video.currentTime = seekTo;
+            updateSeekbar();
             video.removeEventListener('loadedmetadata', handleLoadedMetadata);
             if (debug) console.log("Restored video position to", seekTo);
         };
