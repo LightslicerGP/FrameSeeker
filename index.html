@@ -24,187 +24,117 @@
 </head>
 
 <body class="permDark">
-    <div id="playbackControls">
-        <div id="back15Btn" class="glassy clearer permLight button medium">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M8 20h2a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-2v-3h3" />
-                <path d="M15 18a6 6 0 1 0 0 -12h-11" />
-                <path d="M5 14v6" />
-                <path d="M7 9l-3 -3l3 -3" />
-            </svg>
-        </div>
-        <div id="playpauseBtn" class="glassy clearer permLight button large">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z" />
-            </svg>
-        </div>
-        <div id="forward15Btn" class="glassy clearer permLight button medium">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M17 9l3 -3l-3 -3" />
-                <path d="M9 18a6 6 0 1 1 0 -12h11" />
-                <path d="M16 20h2a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-2v-3h3" />
-                <path d="M13 14v6" />
-            </svg>
-        </div>
-    </div>
 
     <div id="controls">
-        <div id="top">
-            <div class="left">
-                <div id="popupOverlay" class="glassy clearer permLight">
-                    <p id="popupLabel"></p>
-                    <input id="popupValue" type="number" />
-                </div>
+        <div id="TL" class="glassy clearer permLight button">
+            <svg id="framerateSelectorBtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <text id="framerateText" x="12" y="13" fill="white" text-anchor="middle"
+                    dominant-baseline="middle">30</text>
+                <g clip-path="url(#clip0_3510_320)">
+                    <path
+                        d="M5.63536 18.3652C7.32319 20.0531 9.61237 21.0013 11.9993 21.0013C14.3863 21.0013 16.6755 20.0531 18.3633 18.3652"
+                        stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path
+                        d="M18.3646 5.63672C16.6768 3.94889 14.3876 3.00068 12.0007 3.00068C9.61373 3.00068 7.32455 3.94889 5.63672 5.63672"
+                        stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </g>
+                <defs>
+                    <clipPath id="clip0_3510_320">
+                        <rect width="24" height="24" fill="white" />
+                    </clipPath>
+                </defs>
+            </svg>
+            <svg id="timestampSelectorBtn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M21 12a9 9 0 1 0 -9.972 8.948c.32 .034 .644 .052 .972 .052" />
+                <path d="M12 7v5l2 2" />
+                <path d="M18.42 15.61a2.1 2.1 0 0 1 2.97 2.97l-3.39 3.42h-3v-3l3.42 -3.39" />
+            </svg>
 
-                <div id="topLeftButtons" class="glassy clearer permLight button">
-                    <!-- <svg id="framerateSelectorBtn" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <text id="framerateText" x="24" y="23" fill="white" text-anchor="middle"
-                            dominant-baseline="middle">30</text>
-                        <g clip-path="url(#clip0_3503_140)">
-                            <path d="M16 16.0007L12 13.334" stroke="white" stroke-width="1.5" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                            <path d="M16 9.33398V16.0007" stroke="white" stroke-width="1.5" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                            <path
-                                d="M28 15.9992C27.9998 13.6811 27.3283 11.4127 26.0665 9.4681C24.8047 7.52353 23.0067 5.98604 20.8898 5.04146C18.7729 4.09689 16.4278 3.78565 14.1378 4.14538C11.8478 4.50511 9.71101 5.52041 7.98569 7.06855C6.26038 8.6167 5.0204 10.6314 4.41561 12.8692C3.81083 15.107 3.86713 17.472 4.57772 19.6785C5.2883 21.885 6.62276 23.8384 8.41978 25.3027C10.2168 26.767 12.3995 27.6795 14.704 27.9298C15.1307 27.9752 15.5627 27.9992 16 27.9992"
-                                stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                        </g>
-                        <defs>
-                            <clipPath id="clip0_3503_140">
-                                <rect width="32" height="32" fill="white" />
-                            </clipPath>
-                        </defs>
-                    </svg> -->
-                    <svg id="framerateSelectorBtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <text id="framerateText" x="12" y="13" fill="white" text-anchor="middle"
-                            dominant-baseline="middle">30</text>
-                        <g clip-path="url(#clip0_3510_320)">
-                            <path
-                                d="M5.63536 18.3652C7.32319 20.0531 9.61237 21.0013 11.9993 21.0013C14.3863 21.0013 16.6755 20.0531 18.3633 18.3652"
-                                stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            <path
-                                d="M18.3646 5.63672C16.6768 3.94889 14.3876 3.00068 12.0007 3.00068C9.61373 3.00068 7.32455 3.94889 5.63672 5.63672"
-                                stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                        </g>
-                        <defs>
-                            <clipPath id="clip0_3510_320">
-                                <rect width="24" height="24" fill="white" />
-                            </clipPath>
-                        </defs>
-                    </svg>
-                    <svg id="timestampSelectorBtn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M21 12a9 9 0 1 0 -9.972 8.948c.32 .034 .644 .052 .972 .052" />
-                        <path d="M12 7v5l2 2" />
-                        <path d="M18.42 15.61a2.1 2.1 0 0 1 2.97 2.97l-3.39 3.42h-3v-3l3.42 -3.39" />
-                    </svg>
-                </div>
+            <div id="popupOverlay" class="removed">
+                <p id="popupLabel"></p>
+                <input id="popupValue" type="number" />
             </div>
+        </div>
 
-            <div class="right">
-                <div class="glassy clearer permLight button">
-                    <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M2 8a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2l0 -8" />
-                        <path d="M6 10l0 .01" />
-                        <path d="M10 10l0 .01" />
-                        <path d="M14 10l0 .01" />
-                        <path d="M18 10l0 .01" />
-                        <path d="M6 14l0 .01" />
-                        <path d="M18 14l0 .01" />
-                        <path d="M10 14l4 .01" />
-                    </svg>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M4 8v-2a2 2 0 0 1 2 -2h2" />
-                        <path d="M4 16v2a2 2 0 0 0 2 2h2" />
-                        <path d="M16 4h2a2 2 0 0 1 2 2v2" />
-                        <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
-                    </svg> -->
-                    <svg id="chooseVideoBtn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M14 3v4a1 1 0 0 0 1 1h4" />
-                        <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" />
-                        <path d="M12 11v6" />
-                        <path d="M9.5 13.5l2.5 -2.5l2.5 2.5" />
-                    </svg>
-                    <svg id="install-btn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" />
-                        <path d="M7 11l5 5l5 -5" />
-                        <path d="M12 4l0 12" />
-                    </svg>
-                    <svg id="settings-btn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path
-                            d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" />
-                        <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
-                    </svg>
-                    <div id="settings" class="removed">
-                        <div class="settings-item" id="saveTo">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                <path d="M13 19h-8a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v4" />
-                                <path d="M16 22l5 -5" />
-                                <path d="M21 21.5v-4.5h-4.5" />
-                            </svg>
-                            <p>Save To...</p>
-                        </div>
-                        <div class="settings-item" id="controlsHelp">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                <path
-                                    d="M2 8a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2l0 -8" />
-                                <path d="M6 10l0 .01" />
-                                <path d="M10 10l0 .01" />
-                                <path d="M14 10l0 .01" />
-                                <path d="M18 10l0 .01" />
-                                <path d="M6 14l0 .01" />
-                                <path d="M18 14l0 .01" />
-                                <path d="M10 14l4 .01" />
-                            </svg>
-                            <p>Controls</p>
-                        </div>
-                        <div class="settings-item" id="fullscreen">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                <path d="M4 8v-2a2 2 0 0 1 2 -2h2" />
-                                <path d="M4 16v2a2 2 0 0 0 2 2h2" />
-                                <path d="M16 4h2a2 2 0 0 1 2 2v2" />
-                                <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
-                            </svg>
-                            <p>Fullscreen</p>
-                        </div>
-                        <div class="settings-item" id="fillScreen">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                <path d="M16 4l4 0l0 4" />
-                                <path d="M14 10l6 -6" />
-                                <path d="M8 20l-4 0l0 -4" />
-                                <path d="M4 20l6 -6" />
-                                <path d="M16 20l4 0l0 -4" />
-                                <path d="M14 14l6 6" />
-                                <path d="M8 4l-4 0l0 4" />
-                                <path d="M4 4l6 6" />
-                            </svg>
-                            <p>Fill Screen</p>
-                        </div>
-                        <!--
+        <div id="TR">
+            <div class="glassy clearer permLight button">
+                <svg id="chooseVideoBtn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                    stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+                    <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" />
+                    <path d="M12 11v6" />
+                    <path d="M9.5 13.5l2.5 -2.5l2.5 2.5" />
+                </svg>
+                <svg id="install-btn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" />
+                    <path d="M7 11l5 5l5 -5" />
+                    <path d="M12 4l0 12" />
+                </svg>
+                <svg id="settings-btn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path
+                        d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" />
+                    <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                </svg>
+                <div id="settings" class="removed">
+                    <div class="settings-item" id="saveTo">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M13 19h-8a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v4" />
+                            <path d="M16 22l5 -5" />
+                            <path d="M21 21.5v-4.5h-4.5" />
+                        </svg>
+                        <p>Save To...</p>
+                    </div>
+                    <div class="settings-item" id="controlsHelp">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M2 8a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2l0 -8" />
+                            <path d="M6 10l0 .01" />
+                            <path d="M10 10l0 .01" />
+                            <path d="M14 10l0 .01" />
+                            <path d="M18 10l0 .01" />
+                            <path d="M6 14l0 .01" />
+                            <path d="M18 14l0 .01" />
+                            <path d="M10 14l4 .01" />
+                        </svg>
+                        <p>Controls</p>
+                    </div>
+                    <div class="settings-item" id="fullscreen">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M4 8v-2a2 2 0 0 1 2 -2h2" />
+                            <path d="M4 16v2a2 2 0 0 0 2 2h2" />
+                            <path d="M16 4h2a2 2 0 0 1 2 2v2" />
+                            <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
+                        </svg>
+                        <p>Fullscreen</p>
+                    </div>
+                    <div class="settings-item" id="fillScreen">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <path d="M16 4l4 0l0 4" />
+                            <path d="M14 10l6 -6" />
+                            <path d="M8 20l-4 0l0 -4" />
+                            <path d="M4 20l6 -6" />
+                            <path d="M16 20l4 0l0 -4" />
+                            <path d="M14 14l6 6" />
+                            <path d="M8 4l-4 0l0 4" />
+                            <path d="M4 4l6 6" />
+                        </svg>
+                        <p>Fill Screen</p>
+                    </div>
+                    <!--
                         <div class="settings-item" id="fillScreen">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -216,84 +146,107 @@
                             <p>Fit Screen</p>
                         </div>
                         -->
-                        <div class="settings-item" id="speed">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                <text x="12" y="12" text-anchor="middle" dominant-baseline="middle"
-                                    fill="white">1x</text>
-                            </svg>
-                            <p>Speed</p>
-                        </div>
+                    <div class="settings-item" id="speed">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <text x="12" y="13" text-anchor="middle" dominant-baseline="middle" fill="white">1x</text>
+                        </svg>
+                        <p>Speed</p>
                     </div>
                 </div>
-                <div id="saveFrameBtn" class="glassy clearer permLight button">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M15 8h.01" />
-                        <path d="M6 13l2.644 -2.644a1.21 1.21 0 0 1 1.712 0l3.644 3.644" />
-                        <path d="M13 13l1.644 -1.644a1.21 1.21 0 0 1 1.712 0l1.644 1.644" />
-                        <path d="M4 8v-2a2 2 0 0 1 2 -2h2" />
-                        <path d="M4 16v2a2 2 0 0 0 2 2h2" />
-                        <path d="M16 4h2a2 2 0 0 1 2 2v2" />
-                        <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
-                    </svg>
-                </div>
+            </div>
+            <div id="saveFrameBtn" class="glassy clearer permLight button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M15 8h.01" />
+                    <path d="M6 13l2.644 -2.644a1.21 1.21 0 0 1 1.712 0l3.644 3.644" />
+                    <path d="M13 13l1.644 -1.644a1.21 1.21 0 0 1 1.712 0l1.644 1.644" />
+                    <path d="M4 8v-2a2 2 0 0 1 2 -2h2" />
+                    <path d="M4 16v2a2 2 0 0 0 2 2h2" />
+                    <path d="M16 4h2a2 2 0 0 1 2 2v2" />
+                    <path d="M16 20h2a2 2 0 0 0 2 -2v-2" />
+                </svg>
             </div>
         </div>
 
-        <div id="bottom">
-            <div>
-                <div class="left">
-                    <div id="prevFrameBtn" class="glassy clearer permLight button">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                            <path d="M7 6v12" />
-                            <path d="M18 6l-6 6l6 6" />
-                        </svg>
-                    </div>
+        <div id="MM">
+            <div id="back15Btn" class="glassy clearer permLight button medium">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M8 20h2a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-2v-3h3" />
+                    <path d="M15 18a6 6 0 1 0 0 -12h-11" />
+                    <path d="M5 14v6" />
+                    <path d="M7 9l-3 -3l3 -3" />
+                </svg>
+            </div>
+            <div id="playpauseBtn" class="glassy clearer permLight button large">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z" />
+                </svg>
+            </div>
+            <div id="forward15Btn" class="glassy clearer permLight button medium">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M17 9l3 -3l-3 -3" />
+                    <path d="M9 18a6 6 0 1 1 0 -12h11" />
+                    <path d="M16 20h2a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-2v-3h3" />
+                    <path d="M13 14v6" />
+                </svg>
+            </div>
+        </div>
 
-                    <div id="back5Btn" class="glassy clearer permLight button">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                            <path d="M15 18a6 6 0 1 0 0 -12h-11" />
-                            <path d="M7 9l-3 -3l3 -3" />
-                            <path d="M8 20h2a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-2v-3h3" />
-                        </svg>
-                    </div>
-                </div>
-
-                <div class="right">
-                    <div id="forward5Btn" class="glassy clearer permLight button">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                            <path d="M9 18a6 6 0 1 1 0 -12h11" />
-                            <path d="M13 20h2a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-2v-3h3" />
-                            <path d="M17 9l3 -3l-3 -3" />
-                        </svg>
-                    </div>
-                    <div id="nextFrameBtn" class="glassy clearer permLight button">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                            <path d="M6 6l6 6l-6 6" />
-                            <path d="M17 5v13" />
-                        </svg>
-                    </div>
-                </div>
+        <div id="BL">
+            <div id="prevFrameBtn" class="glassy clearer permLight button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M7 6v12" />
+                    <path d="M18 6l-6 6l6 6" />
+                </svg>
             </div>
 
-            <div class="seekbar glassy clearer permLight sc-m">
-                <span id="currentTime">00:00</span>
-                <div class="slider-wrapper">
-                    <div class="slider-bg"></div>
-                    <div class="slider-fill"></div>
-                    <input type="range" id="seekbarSlider" min="0" max="100" value="0" step="0.01" />
-                </div>
-                <span id="totalTime">00:00</span>
+            <div id="back5Btn" class="glassy clearer permLight button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M15 18a6 6 0 1 0 0 -12h-11" />
+                    <path d="M7 9l-3 -3l3 -3" />
+                    <path d="M8 20h2a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-2v-3h3" />
+                </svg>
             </div>
+        </div>
+
+        <div id="BR">
+            <div id="forward5Btn" class="glassy clearer permLight button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M9 18a6 6 0 1 1 0 -12h11" />
+                    <path d="M13 20h2a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-2v-3h3" />
+                    <path d="M17 9l3 -3l-3 -3" />
+                </svg>
+            </div>
+            <div id="nextFrameBtn" class="glassy clearer permLight button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M6 6l6 6l-6 6" />
+                    <path d="M17 5v13" />
+                </svg>
+            </div>
+        </div>
+
+        <div id="BM" class="seekbar glassy clearer permLight sc-m">
+            <span id="currentTime">00:00</span>
+            <div class="slider-wrapper">
+                <div class="slider-bg"></div>
+                <div class="slider-fill"></div>
+                <input type="range" id="seekbarSlider" min="0" max="100" value="0" step="0.01" />
+            </div>
+            <span id="totalTime">00:00</span>
         </div>
     </div>
 

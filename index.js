@@ -8,7 +8,6 @@ const debug = false;
 const video = document.getElementById('video');
 const blurLayer = document.getElementById('video-blur');
 const controls = document.getElementById('controls');
-const playbackControls = document.getElementById('playbackControls');
 const playpauseBtn = document.getElementById('playpauseBtn');
 const chooseVideoBtn = document.getElementById('chooseVideoBtn');
 const popupOverlay = document.getElementById('popupOverlay');
@@ -23,10 +22,8 @@ const back5Btn = document.getElementById('back5Btn');
 const forward5Btn = document.getElementById('forward5Btn');
 const prevFrameBtn = document.getElementById('prevFrameBtn');
 const nextFrameBtn = document.getElementById('nextFrameBtn');
-const buttons = document.getElementById('topLeftButtons');
 const popupLabel = document.getElementById('popupLabel');
 const popupInput = document.getElementById('popupValue');
-const leftSection = document.querySelector('#controls > #top > .left');
 const saveFrameBtn = document.getElementById('saveFrameBtn');
 const settingsBtn = document.getElementById('settings-btn');
 const settingsDiv = document.getElementById('settings');
@@ -36,6 +33,7 @@ const controlsHelpBtn = document.getElementById('controlsHelp');
 const fullscreenBtn = document.getElementById('fullscreen');
 const fillScreenBtn = document.getElementById('fillScreen');
 const speedBtn = document.getElementById('speed');
+const playbackControls = document.getElementById('MM');
 
 // ============
 // FIT SCREEN & FILL SCREEN TOGGLE LOGIC
@@ -304,6 +302,8 @@ function getFrameDuration() {
 // ==================
 // Utility Functions
 // ==================
+
+
 function hideResumeBlockBtns() {
     if (playpauseBtn) playpauseBtn.classList.add('removed');
     if (back15Btn) back15Btn.classList.add('removed');
@@ -374,10 +374,11 @@ function toggleControls() {
 
 function getCurrentFrameNumber() {
     if (!video) return 0;
-    return Math.floor(video.currentTime * selectedFramerate);
+    return Math.floor((video.currentTime * selectedFramerate) + 0.01);
 }
+
 function getTimeForFrame(frameNumber) {
-    return Math.max(0, frameNumber / selectedFramerate);
+    return Math.max(0, (frameNumber + 0.01) / selectedFramerate);
 }
 
 // ==================
@@ -739,15 +740,6 @@ controls.addEventListener('click', (e) => {
         resetControlsAutoHide();
     }
 });
-playbackControls.addEventListener('click', (e) => {
-    if (popupOverlay.classList.contains('active')) return;
-    if (!e.target.closest('.button')) {
-        toggleControls();
-        if (debug) console.log('playbackControls clicked');
-    } else {
-        resetControlsAutoHide();
-    }
-});
 document.body.addEventListener('click', (e) => {
     const resumeDiv = document.getElementById('resumePrompt');
     if (resumeDiv) {
@@ -762,7 +754,7 @@ document.body.addEventListener('click', (e) => {
     }
     if (popupOverlay.classList.contains('active')) {
         const clickedInsidePopup = popupOverlay.contains(e.target);
-        const clickedTopLeftButtons = e.target.closest('#topLeftButtons');
+        const clickedTopLeftButtons = e.target.closest('#framerateSelectorBtn') || e.target.closest('#timestampSelectorBtn');
         if (!clickedInsidePopup && !clickedTopLeftButtons) {
             hidePopup();
             if (debug) console.log('popupOverlay was open and body clicked');
@@ -772,7 +764,7 @@ document.body.addEventListener('click', (e) => {
     if (
         !e.target.closest('.button') &&
         !e.target.closest('#controls') &&
-        !e.target.closest('#playbackControls') &&
+        !e.target.closest('#MM') &&
         e.target !== video
     ) {
         toggleControls();
@@ -938,8 +930,10 @@ function showPopup(mode) {
     }
 
     popupOverlay.dataset.mode = mode;
+    popupOverlay.classList.remove('removed');
     popupOverlay.classList.add('active');
-    buttons.classList.add('removed');
+    framerateSelectorBtn.classList.add('removed');
+    timestampSelectorBtn.classList.add('removed');
 
     popupInput.focus();
     popupInput.select();
@@ -970,8 +964,10 @@ function hidePopup() {
     }
 
     popupOverlay.classList.remove('active');
+    popupOverlay.classList.add('removed');
     popupOverlay.dataset.mode = '';
-    buttons.classList.remove('removed');
+    framerateSelectorBtn.classList.remove('removed');
+    timestampSelectorBtn.classList.remove('removed');
 
     if (!popupOverlay.classList.contains('active')) {
         scheduleControlsAutoHide();
