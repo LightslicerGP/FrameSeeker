@@ -65,87 +65,62 @@ const fitScreenInnerHTML = `
     <p>Fit Screen</p>
 `;
 
-// Save the default innerHTML of the button for toggling back
-function cacheOriginalFillScreenInnerHTML() {
-    if (fillScreenBtn && !originalFillScreenInnerHTML) {
-        originalFillScreenInnerHTML = fillScreenBtn.innerHTML;
-    }
-}
 function cacheOriginalFitScreenInnerHTML() {
     if (fillScreenBtn && !originalFitScreenInnerHTML) {
         originalFitScreenInnerHTML = fitScreenInnerHTML;
     }
 }
+function cacheOriginalFillScreenInnerHTML() {
+    if (fillScreenBtn && !originalFillScreenInnerHTML) {
+        originalFillScreenInnerHTML = fillScreenBtn.innerHTML;
+    }
+}
 
-// Toggle between fill screen and fit screen on clicking the button
 if (fillScreenBtn && video && blurLayer) {
     cacheOriginalFillScreenInnerHTML();
+
+    function getFillScale() {
+        if (!video.videoWidth || !video.videoHeight) return 1;
+        const videoRatio = video.videoWidth / video.videoHeight;
+        const screenRatio = window.innerWidth / window.innerHeight;
+        return screenRatio > videoRatio
+            ? screenRatio / videoRatio
+            : videoRatio / screenRatio;
+    }
+
+    function applyVideoTransform(scale, transition = false) {
+        if (transition) {
+            video.style.transition = 'transform 0.5s ease-in-out';
+        } else {
+            video.style.transition = 'none';
+        }
+        video.style.transform = `scale(${scale})`;
+    }
+
     fillScreenBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        // If currently in fill screen, switch to fit screen
-        if (!isFitScreenActive && !isFillScreenActive) {
-            // ---- Enter "Fill Screen" mode ----
+
+        if (!isFillScreenActive) {
             isFillScreenActive = true;
-            isFitScreenActive = false;
-
-            // Save original styles
-            originalVideoObjectFit = video.style.objectFit;
-            originalVideoPosition = video.style.position;
-            originalVideoWidth = video.style.width;
-            originalVideoHeight = video.style.height;
-            originalVideoLeft = video.style.left;
-            originalVideoTop = video.style.top;
-            originalVideoTransform = video.style.transform;
-            originalVideoZ = video.style.zIndex;
-
-            // Make video cover everything, cropping as needed
-            video.style.position = 'fixed';
-            video.style.top = '0';
-            video.style.left = '0';
-            video.style.width = '100vw';
-            video.style.height = '100vh';
-            video.style.objectFit = 'cover';
-            if (originalVideoZ) {
-                video.style.zIndex = originalVideoZ;
-            }
-
-            // Hide the blurLayer background to save GPU
-            blurLayer.style.display = 'none';
-
-            // Indicate mode
+            applyVideoTransform(getFillScale(), true);
+            // blurLayer.style.opacity = '0';
             fillScreenBtn.classList.add('active');
-
-            // Change icon to "Fit Screen"
-            cacheOriginalFillScreenInnerHTML();
             fillScreenBtn.innerHTML = fitScreenInnerHTML;
-
             if (debug) console.log('Fill screen mode activated');
-        } else if (isFillScreenActive && !isFitScreenActive) {
-            // ---- Enter "Fit Screen" mode, restore video, change icon back ----
-            // Restore previous video style
-            video.style.objectFit = originalVideoObjectFit;
-            video.style.position = originalVideoPosition;
-            video.style.width = originalVideoWidth;
-            video.style.height = originalVideoHeight;
-            video.style.left = originalVideoLeft;
-            video.style.top = originalVideoTop;
-            video.style.transform = originalVideoTransform;
-            video.style.zIndex = originalVideoZ;
-
-            // Show the blurLayer again
-            blurLayer.style.display = '';
-
-            // Remove indication
-            fillScreenBtn.classList.remove('active');
-
-            // Restore the original icon 
-            fillScreenBtn.innerHTML = originalFillScreenInnerHTML;
-
-            // Reset state
+        } else {
             isFillScreenActive = false;
-            isFitScreenActive = false;
+            applyVideoTransform(1, true);
+            blurLayer.style.opacity = '1';
 
+            fillScreenBtn.classList.remove('active');
+            fillScreenBtn.innerHTML = originalFillScreenInnerHTML;
             if (debug) console.log('Fill screen mode deactivated');
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (isFillScreenActive) {
+            applyVideoTransform(getFillScale(), false);
         }
     });
 }

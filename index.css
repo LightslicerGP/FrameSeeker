@@ -109,6 +109,17 @@ html,
     overflow: hidden;
 }
 
+#video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100dvw;
+    height: 100dvh;
+    object-fit: contain;
+    z-index: 1;
+    /* transition: transform 0.5s ease-in-out; */
+}
+
 #video-blur {
     position: fixed;
     inset: 0;
@@ -118,16 +129,7 @@ html,
     pointer-events: none;
     filter: blur(64px);
     transform: scale(1.5);
-}
-
-#video {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100dvw;
-    height: 100dvh;
-    object-fit: contain;
-    z-index: 1;
+    /* transition: opacity 2s ease-in-out; */
 }
 
 svg {
