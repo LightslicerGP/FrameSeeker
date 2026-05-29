@@ -1095,8 +1095,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const ctx = blurLayer.getContext('2d');
     function resizeCanvas() {
-        blurLayer.width = window.innerWidth;
-        blurLayer.height = window.innerHeight;
+        blurLayer.width = window.innerWidth + 400;
+        blurLayer.height = window.innerHeight + 400;
     }
     window.addEventListener('resize', () => {
         resizeCanvas();

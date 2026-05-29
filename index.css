@@ -122,13 +122,13 @@ html,
 
 #video-blur {
     position: fixed;
-    inset: 0;
-    width: 100dvw;
-    height: 100dvh;
+    top: -200px;
+    left: -200px;
+    width: calc(100dvw + 400px);
+    height: calc(100dvh + 400px);
     z-index: 0;
     pointer-events: none;
     filter: blur(64px);
-    transform: scale(1.5);
     /* transition: opacity 2s ease-in-out; */
 }
 
