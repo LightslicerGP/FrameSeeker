@@ -1019,7 +1019,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             borderRadius: '16px',
             background: 'rgba(0,128,255,0.5)',
             cursor: 'pointer',
-            transition: 'background 0.25s'
+            transition: 'background 0.25s ease-in-out'
         });
 
         const noButton = document.createElement('button');
@@ -1036,7 +1036,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             borderRadius: '16px',
             background: 'rgba(0,0,0,0.5)',
             cursor: 'pointer',
-            transition: 'background 0.25s'
+            transition: 'background 0.25s ease-in-out'
         });
 
         btnContainer.appendChild(noButton);
