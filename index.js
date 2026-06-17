@@ -18,8 +18,8 @@ const currentTimeDisplay = document.getElementById('currentTime');
 const totalTimeDisplay = document.getElementById('totalTime');
 const back15Btn = document.getElementById('back15Btn');
 const forward15Btn = document.getElementById('forward15Btn');
-const back5Btn = document.getElementById('back5Btn');
-const forward5Btn = document.getElementById('forward5Btn');
+const back1Btn = document.getElementById('back1Btn');
+const forward1Btn = document.getElementById('forward1Btn');
 const prevFrameBtn = document.getElementById('prevFrameBtn');
 const nextFrameBtn = document.getElementById('nextFrameBtn');
 const popupLabel = document.getElementById('popupLabel');
@@ -237,7 +237,7 @@ let saveDirHandle = null;
 let _pendingResumeCurrentTime = null;
 
 let controlsAutoHideTimer = null;
-const AUTOHIDE_DELAY = 3000;
+const AUTOHIDE_DELAY = 10000000;
 function isControlsVisible() {
     return (
         controls && !controls.classList.contains('transparent') ||
@@ -667,17 +667,17 @@ forward15Btn.addEventListener('click', (e) => {
     resetControlsAutoHide();
     if (debug) console.log('forward15Btn clicked');
 });
-back5Btn.addEventListener('click', (e) => {
+back1Btn.addEventListener('click', (e) => {
     e.stopPropagation();
-    skipVideo(-5);
+    skipVideo(-1);
     resetControlsAutoHide();
-    if (debug) console.log('back5Btn clicked');
+    if (debug) console.log('back1Btn clicked');
 });
-forward5Btn.addEventListener('click', (e) => {
+forward1Btn.addEventListener('click', (e) => {
     e.stopPropagation();
-    skipVideo(5);
+    skipVideo(1);
     resetControlsAutoHide();
-    if (debug) console.log('forward5Btn clicked');
+    if (debug) console.log('forward1Btn clicked');
 });
 prevFrameBtn.addEventListener('click', (e) => {
     e.stopPropagation();

@@ -13,8 +13,8 @@ A PWA (or possibly an actual app) that allows you to view and save frames of a v
 - [x] Add keyboard shortcuts for navigation?
 - [x] Add fullscreen video button
 - [x] Add framerate to the icon
+- [x] 2x speed button?
 - [ ] Add keyboard shortcut help button
-- [ ] 2x speed button?
 - [ ] Fix seekbar progfression part to exist, doesnt rn
 - [ ] Add preset framerates
 - [ ] Add specific frame history
@@ -28,7 +28,7 @@ A PWA (or possibly an actual app) that allows you to view and save frames of a v
 - [x] d: Forward 1 Frame
 - [x] q: Back 15s
 - [x] e: Forward 15s
-- [x] z: Back 5s
+- [x] z: Back 1s
 - [x] x: Jump To Frame
-- [x] c: Forward 5s
+- [x] c: Forward 1s
 - [x] Space: Play/Pause
